@@ -1,0 +1,25 @@
+# Only API build inputs belong in this build context.
+**
+!global.json
+!Directory.Build.props
+!.editorconfig
+!src/
+!src/Backend/
+!src/Backend/GeoSurvey.Api/
+!src/Backend/GeoSurvey.Api/**
+
+# Exclude generated output, local IDE state, and credentials even under the API.
+**/bin
+**/obj
+**/Properties
+**/*.user
+**/*.suo
+**/.env
+**/.env.*
+**/appsettings.Local.json
+**/appsettings.Development.json
+**/secrets.json
+**/*.pfx
+**/*.p12
+**/*.pem
+**/*.key

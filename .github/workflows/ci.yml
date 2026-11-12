@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Format, build, and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Restore dependencies
+        run: dotnet restore GeoSurvey.sln
+
+      - name: Verify formatting
+        run: dotnet format GeoSurvey.sln --verify-no-changes --no-restore
+
+      - name: Build Release
+        run: dotnet build GeoSurvey.sln --configuration Release --no-restore
+
+      - name: Run integration tests
+        run: dotnet test GeoSurvey.sln --configuration Release --no-build --no-restore
+
+  frontend:
+    name: Frontend format, build, and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    defaults:
+      run:
+        working-directory: src/Frontend/geosurvey-web
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24.14.1'
+          package-manager-cache: false
+
+      - name: Install dependencies from lockfile
+        run: npm ci
+
+      - name: Verify frontend formatting
+        run: npm exec -- prettier --check src angular.json package.json tsconfig.json tsconfig.app.json tsconfig.spec.json .prettierrc
+
+      - name: Build frontend for production
+        run: npm run build
+
+      - name: Run frontend tests
+        run: npm test -- --watch=false
