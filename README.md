@@ -147,7 +147,9 @@ Implementation references: [Serilog ASP.NET Core](https://github.com/serilog/ser
 
 `ProjectDependencies` reads the project graph using built-in XML APIs, normalizes slash styles, and traverses dependencies to detect cycles. `ProjectDependencyTests` checks the repository and uses small in-memory graphs to prove forbidden references and cycles fail while permitted references pass. Existing xUnit/test SDK versions are reused; no architecture library or application reference is added.
 
-This is static inspection: conditions are conservatively checked regardless of the current platform. It does not evaluate MSBuild imports or inspect NuGet, assembly, or namespace dependencies. Dynamic/property-based references are rejected explicitly and require a reviewed extension of the checker. Generated output and frontend dependency directories are skipped. Domain/Application boundary checks will be added when those layers exist.
+Backend projects whose filenames end in `.Domain.csproj` must declare no `PackageReference` or `ProjectReference` elements. The repository test explicitly requires the Organizations Domain project to be discovered, preventing an empty scan from passing. Tests also verify rejection of conditional references and acceptance of the standard framework SDK without added dependencies. Any future shared Domain dependency requires a reviewed rule change.
+
+This is static inspection: conditions are conservatively checked regardless of the current platform. Domain reference declarations are rejected even when expressed as Update/Remove entries. The checker does not evaluate MSBuild imports, SDK resolution, resolved NuGet dependencies, direct assembly/framework references, or C# namespaces; it does not prove complete assembly isolation. Dynamic/property-based project paths are rejected explicitly and require a reviewed extension of the checker. Generated output and frontend dependency directories are skipped. Application-layer rules will be added when that layer exists.
 
 Run from the repository root:
 

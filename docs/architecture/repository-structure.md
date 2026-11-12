@@ -60,6 +60,12 @@ docker-compose.yml                 # Add when local dependencies are needed
 
 ## Module organization
 
+The first implemented business module assembly is `src/Backend/Modules/Organizations/GeoSurvey.Organizations.Domain`, targeting `net10.0` with no package or project references. It currently contains only the immutable `OrganizationCode` value object. Its separate `tests/Unit/GeoSurvey.Organizations.Domain.Tests` project references Domain and reuses the existing xUnit/test SDK versions. Both projects are included in the root solution. No Application, Infrastructure, or module Presentation projects are created until needed; the API has no reference to Domain yet.
+
+`OrganizationCode.Create()` trims surrounding whitespace using .NET `Trim()`, applies invariant lowercase normalization, and enforces the approved normalized length/character/hyphen rules. Null throws `ArgumentNullException`; other invalid input throws `ArgumentException` without including the supplied value. A private constructor and read-only `Value` prevent mutation; sealed record equality compares the normalized value. `ToString()` returns that value. Persistence must enforce platform-wide uniqueness later, and organization creation/update use cases must enforce administrator selection and code immutability after creation. This type does not authenticate users, choose a tenant database, or implement an API error contract.
+
+Unit tests cover normalization, inclusive length boundaries, invalid characters and hyphens, null input, Turkish-culture casing independence, and value equality. Root build/test commands include these tests automatically. Architecture checks now discover backend `*.Domain.csproj` projects and reject every explicit package/project reference declaration, including conditional declarations. Standard framework SDK APIs remain available. The repository check requires the Organizations Domain project to be found; fixtures verify rejection of forbidden references and acceptance of dependency-free projects. This static XML rule does not evaluate imports or enforce assembly/namespace restrictions. A future shared Domain reference requires a reviewed exception.
+
 A module can begin with folders. Separate assemblies are appropriate when they provide a concrete boundary or build/test benefit; do not generate every module as several empty projects.
 
 ```text
@@ -87,6 +93,12 @@ Modules may interact through explicit public application contracts or events. Th
 The planned database topology remains unchanged: a global control-plane database for identity and tenant registry, with an independent operational database for each organization. Module-based SQL schemas organize data within an organization's database; they do not replace database-per-tenant isolation.
 
 Database selection must come from trusted server-side identity and registry data. Authorization must establish permitted organization membership and resource scope. A client-provided identifier alone never grants tenant access. No database, identity, or tenant resolution implementation is part of this documentation task.
+
+Identity decision OPEN-001 was resolved on 2026-11-12: use independent organization accounts and credentials, including when the same email is reused across organizations. The global control-plane database still stores identity records and the tenant registry; global storage does not imply a shared login with organization memberships. Organization context must distinguish the account being authenticated, with exact login/account schema details still to be designed. See [decision record 0003](../decisions/0003-separate-organization-accounts.md).
+
+Organization login approach approved on 2026-11-12: both web and mobile accept organization code + email + password. The server resolves the organization and validates its independent account; the code alone does not authenticate or authorize tenant access. See [decision record 0004](../decisions/0004-organization-code-login.md).
+
+Organization-code rules approved on 2026-11-12: Platform Administrator selects a platform-wide unique code, fixed after creation. Normalize by trimming surrounding spaces and lowercasing; require 3-50 characters from `a-z`, `0-9`, and hyphens, without leading, trailing, or consecutive hyphens. See [decision record 0005](../decisions/0005-organization-code-rules.md). Database enforcement, reserved codes, retired-code reuse, and platform-administrator login remain unresolved/unimplemented as applicable.
 
 ## Phase 0 sequencing
 

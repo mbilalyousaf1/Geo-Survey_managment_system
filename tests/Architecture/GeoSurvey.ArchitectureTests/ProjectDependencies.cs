@@ -4,6 +4,26 @@ namespace GeoSurvey.ArchitectureTests;
 
 internal static class ProjectDependencies
 {
+    public static Dictionary<string, string[]> ReadDomainViolations(string root)
+    {
+        return FindProjects(Path.Combine(root, "src", "Backend"))
+            .Where(project => Path.GetFileName(project).EndsWith(".Domain.csproj", StringComparison.OrdinalIgnoreCase))
+            .ToDictionary(project => Relative(root, project),
+                project => ValidateDomainReferences(XDocument.Load(project)), StringComparer.OrdinalIgnoreCase);
+    }
+
+    public static string[] ValidateDomainReferences(XDocument project)
+    {
+        // Inspect all declarations, including conditional and Update/Remove entries.
+        // Imports and SDK-provided framework references are not evaluated here.
+        return project.Descendants()
+            .Where(element => element.Name.LocalName is "PackageReference" or "ProjectReference")
+            .Select(element => $"Domain projects cannot declare {element.Name.LocalName}: "
+                + (element.Attribute("Include")?.Value ?? element.Attribute("Update")?.Value
+                    ?? element.Attribute("Remove")?.Value ?? "(unspecified)"))
+            .ToArray();
+    }
+
     public static Dictionary<string, string[]> Read(string root)
     {
         var graph = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase);
