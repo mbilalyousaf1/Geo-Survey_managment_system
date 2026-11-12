@@ -1,6 +1,6 @@
 # Repository structure and dependency boundaries
 
-Status: initial solution, API host, liveness health check, structured console logging, and first API integration test implemented; the remaining Phase 0 work is pending separate approval.
+Status: Phase 0 foundation deliverables implemented and ready for user acceptance with documented limitations; Phase 1 has not started.
 
 The source of truth is [the master specification](../../GeoSurvey_Master_Architecture_and_Codex_Spec.md), especially sections 3, 4, 5, 16, and 17. This document records the planned organization; it does not change business requirements or resolve open decisions.
 
@@ -96,15 +96,25 @@ Each step requires its own small task explanation and approval:
 2. Propose and create the solution and minimal API host, with exact SDK configuration and run instructions (implemented: `GeoSurvey.sln`, `GeoSurvey.Api`, and `global.json`; see the root README).
 3. Add health checks and structured logging with meaningful verification (complete: `/health/live`, Serilog compact JSON console logs, and a liveness integration test).
 4. Add dependency checks as supported by the skeleton (implemented: static project reference checks prevent production-to-test and backend/mobile references, reject unknown targets, and detect cycles; checks for internal module layers remain deferred until those layers exist).
-5. Verify tool compatibility and create the Angular skeleton (implemented: Angular 21 standalone app with strict TypeScript, routing configuration, and a root component test; frontend CI configuration implemented, hosted run pending).
+5. Verify tool compatibility and create the Angular skeleton (implemented: Angular 21 standalone app with strict TypeScript, routing configuration, and a root component test; frontend CI configuration implemented and hosted run passed).
 6. Verify target tooling and create the MAUI skeleton (implemented: Android-only `GeoSurvey.Mobile` in the separate `src/Mobile/GeoSurvey.Mobile.sln`; Debug Android build verified, device startup pending because no device/emulator was attached).
-7. Add relevant Docker support and a basic CI build/test pipeline (backend/frontend CI and API Docker configuration implemented; Compose validation, Linux image build, non-root container startup, and HTTP liveness verified; hosted CI and clean-checkout verification pending).
+7. Add relevant Docker support and a basic CI build/test pipeline (backend/frontend CI and API Docker configuration implemented; Compose validation, Linux image build, non-root container startup, and HTTP liveness verified; backend/frontend clean Git checkout verified on Windows; hosted backend/frontend CI passed for commit `e5072b4`).
 
 The precise scope of each step will be proposed before implementation. Phase 0 finishes when a clean checkout can build and run locally with documented commands. It includes no authentication, tenant provisioning, GIS, or survey features.
 
-Fresh source verification on 2026-11-12 passed: a temporary copy of Git-listed, non-ignored files restored and built the backend in Release mode with 8 passing tests; the copied API returned `200 Healthy`. Angular `npm ci`, production build, and its 1 component test also passed. Existing shared package caches and installed tooling were available. This was not an actual Git checkout (the repository had no commits), and does not replace hosted CI or the clean-checkout exit criterion. MAUI, Docker, and formatting were not repeated in this task. See the root README for exact commands and unresolved dependency findings.
+Fresh source verification on 2026-11-12 passed: a temporary copy of Git-listed, non-ignored files restored and built the backend in Release mode with 8 passing tests; the copied API returned `200 Healthy`. Angular `npm ci`, production build, and its 1 component test also passed. Existing shared package caches and installed tooling were available. That check was not an actual Git checkout (the repository had no commits at the time); the later clean-checkout result is recorded below. MAUI, Docker, and formatting were not repeated in this task. See the root README for exact commands and unresolved dependency findings.
 
-## Inspection baseline
+## Clean checkout result
+
+Clean Git checkout verification on 2026-11-12 passed for commit `12ef425`: an independent temporary local clone restored and built the backend with zero warnings/errors, passed 8 backend tests, and served `200 Healthy`. Angular clean installation, production build, and its 1 component test also passed. This verifies committed source on the existing Windows environment, with shared package caches available; it does not verify a clean machine or GitHub hosted CI. MAUI, Docker, and formatting were not repeated. See the root README for commands and remaining limitations.
+
+## Phase 0 acceptance status
+
+On 2026-11-12, the master specification's Phase 0 and section 17.3 deliverables were reviewed against the existing implementation and verification evidence. All required skeleton deliverables are present. [Hosted CI run 43205939746](https://github.com/mbilalyousaf1/Geo-Survey_managment_system/actions/runs/43205939746) completed successfully for commit `e5072b4`, with both backend and frontend jobs passing. The clean-checkout result above and earlier Docker/Android build evidence remain applicable within their stated limits.
+
+Recommendation: ready for user acceptance with documented limitations, rather than an automatic declaration of completion. The 16 moderate frontend development-dependency findings are unresolved; Android device startup and mobile CI remain unverified/unconfigured. Clean checkout used existing tooling/shared caches. Branch protection and production deployment are not established. See the root README's Phase 0 acceptance review for evidence and scope. No Phase 1 implementation is authorized by this review.
+
+## Initial environment inspection
 
 Observed on 2026-11-11:
 

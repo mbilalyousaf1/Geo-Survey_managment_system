@@ -4,7 +4,7 @@ Multi-organization GIS field survey management platform, developed incrementally
 
 ## Current scope
 
-Phase 0 is in progress. The repository contains a .NET 10 ASP.NET Core API host, a process liveness endpoint, Serilog JSON console logging, an API integration test, shared coding conventions, a GitHub Actions CI workflow for backend and frontend, an Angular 21 skeleton, a MAUI Android skeleton, and local API Docker configuration. Databases, business modules, and authentication are deferred to separately approved tasks.
+Phase 0 foundation deliverables are implemented and ready for user acceptance with the limitations recorded below; Phase 1 has not started. The repository contains a .NET 10 ASP.NET Core API host, a process liveness endpoint, Serilog JSON console logging, an API integration test, shared coding conventions, a GitHub Actions CI workflow for backend and frontend, an Angular 21 skeleton, a MAUI Android skeleton, and local API Docker configuration. Databases, business modules, and authentication are deferred to separately approved tasks.
 
 ## Prerequisites
 
@@ -159,7 +159,7 @@ Restore and build the root solution first. The tests locate the checkout by walk
 
 ## Continuous integration
 
-[The CI workflow](.github/workflows/ci.yml) runs on pull requests, pushes to `main`, and manual dispatch. It checks out the repository, installs the SDK specified by `global.json`, restores dependencies, verifies formatting, builds in Release mode, and runs the tests using that Release build. GitHub executes steps in order and stops normal execution when a step fails.
+[The CI workflow](.github/workflows/ci.yml) runs on pull requests, pushes to `main` or `chore/phase0-foundation`, and manual dispatch. It checks out the repository, installs the SDK specified by `global.json`, restores dependencies, verifies formatting, builds in Release mode, and runs the tests using that Release build. GitHub executes steps in order and stops normal execution when a step fails.
 
 Backend and frontend jobs run independently on Ubuntu hosted runners, each with a 15-minute timeout. The workflow grants its GitHub token only read access to repository contents. Checkout does not persist credentials. No custom secrets are required, and the workflow does not publish packages, deploy, or push commits. A push to `main` trigger validates merged changes; development work still belongs on feature branches.
 
@@ -236,7 +236,52 @@ npm.cmd test -- --watch=false
 
 Installation and production build passed, and 1 component test passed. Installation reported the previously documented 16 moderate dependency findings; they remain unresolved. No dependency versions were changed by this verification.
 
-MAUI, Docker, and formatting checks were not repeated in this task; their earlier results remain separate. An actual clean Git checkout and hosted CI run are still pending after separately approved commits/pushes. Phase 0 is not declared complete by this fresh-copy check.
+MAUI, Docker, and formatting checks were not repeated in this task; their earlier results remain separate. At the time of this fresh-copy check, an actual clean Git checkout and hosted CI run were pending. The later clean-checkout result is recorded below. Phase 0 was not declared complete by this fresh-copy check.
+
+## Clean Git checkout verification
+
+On 2026-11-12, `git clone --no-hardlinks --branch chore/phase0-foundation --single-branch . <temporary-directory>` created an independent local clone of commit `12ef425`. Only committed files were available initially; no original build output or `node_modules` was copied. This verifies the local committed source, not a fresh download from GitHub or a clean machine. Installed tooling and shared NuGet/npm caches remained available.
+
+The following commands passed in the clone:
+
+```powershell
+dotnet restore GeoSurvey.sln
+dotnet build GeoSurvey.sln --configuration Release --no-restore
+dotnet test GeoSurvey.sln --configuration Release --no-build --no-restore
+dotnet run --project src/Backend/GeoSurvey.Api --configuration Release --no-build --launch-profile http
+```
+
+The build had zero warnings/errors; 7 architecture tests and 1 API integration test passed. While the cloned host was running, `curl.exe --fail --show-error --include http://localhost:5121/health/live` returned `200 Healthy`. The host was stopped after verification.
+
+From the clone's `src/Frontend/geosurvey-web` directory, `npm.cmd ci`, `npm.cmd run build`, and `npm.cmd test -- --watch=false` passed; 1 component test passed. The existing 16 moderate development-dependency findings were reported again. MAUI, Docker, and formatting were not repeated. At the time of this check, hosted GitHub CI, mobile device execution, and resolution of dependency findings remained outstanding. The later hosted CI result is recorded below; mobile device execution and dependency findings remain unresolved.
+
+## Phase 0 acceptance review
+
+Review date: 2026-11-12. The deliverables in master specification sections 16 (Phase 0) and 17.3 are implemented. Recommendation: ready for user acceptance with the unresolved items below explicitly acknowledged. This review does not itself approve the foundation or authorize Phase 1.
+
+| Required deliverable | Evidence |
+| --- | --- |
+| Monorepo and solution/project skeletons | Root backend solution, Angular app, and separate Android MAUI solution |
+| Coding conventions | `.editorconfig`, `Directory.Build.props`, and successful formatting checks |
+| Docker local development | API image built, non-root container started, loopback health endpoint returned `200 Healthy` |
+| Basic CI pipeline | [Hosted run 43205939746](https://github.com/mbilalyousaf1/Geo-Survey_managment_system/actions/runs/43205939746), commit `e5072b4`: backend and frontend jobs succeeded |
+| Health checks and structured logging | Built-in liveness endpoint, integration test, and observed Serilog JSON console output |
+| Architecture decision records | [ADR index](docs/decisions/README.md) records the modular monolith and separate mobile solution decisions |
+| Initial architecture tests/dependency rules | 7 architecture checks passed; inspect project references without building MAUI |
+| Setup documentation and clean checkout | Local Git clone of `12ef425` restored/built the backend, passed 8 backend tests, served `200 Healthy`, and installed/built/tested Angular successfully |
+| No premature business features | Authentication, tenant provisioning, GIS workflows, and survey features remain unimplemented |
+
+The hosted CI result was rechecked read-only for this review. Both jobs completed successfully, verifying backend restore, formatting, Release build and tests, plus frontend clean installation, formatting, production build and tests on Ubuntu. Local application builds/tests, Docker, and MAUI builds were not repeated for this documentation-only review.
+
+Remaining limitations for the user's acceptance decision:
+
+- The last recorded npm audit reports 16 moderate development-tool dependency findings. They are unresolved; the earlier production-only audit reported zero findings. No new audit or forced dependency upgrade was performed in this review. Acceptance must not be interpreted as remediation or production security approval.
+- Android Debug build succeeded, but device/emulator execution remains unverified. Mobile builds were not repeated from the clean clone, and mobile CI is not configured. Apple and Windows targets remain disabled.
+- The clean checkout used the existing Windows tooling and shared caches. It was a local Git clone, not a clean-machine test. Hosted CI separately verified backend/frontend on Ubuntu.
+- Repository default branch is currently `chore/phase0-foundation`; the workflow explicitly includes this branch's pushes. Branch strategy and required-check protection are not configured by this review.
+- The runtime image tag is not digest-pinned. Deployment, release signing, full security/performance testing, and production operations remain outside this foundation task.
+
+No required Phase 0 skeleton deliverable was found missing. Unresolved dependency findings should be triaged in a separately approved small task, and mobile device validation remains outstanding. Obtain the user's explicit foundation acceptance before planning implementation in the next phase.
 
 ## Architecture and working rules
 
