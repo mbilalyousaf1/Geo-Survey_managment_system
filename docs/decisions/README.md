@@ -6,6 +6,9 @@ These records capture the context, decision, and consequences of GeoSurvey's arc
 | --- | --- | --- |
 | [0001: Modular monolith with Clean Architecture](0001-modular-monolith.md) | Accepted | Master specification ADR-001 and sections 3–4 |
 | [0002: Separate mobile solution](0002-separate-mobile-solution.md) | Accepted | Approved Phase 0 mobile skeleton implementation |
+| [0003: Separate accounts per organization](0003-separate-organization-accounts.md) | Accepted | Product owner resolved OPEN-001 on 2026-11-12 |
+| [0004: Organization code at login](0004-organization-code-login.md) | Accepted | Product owner approved organization code + email + password for web/mobile on 2026-11-12 |
+| [0005: Organization-code rules](0005-organization-code-rules.md) | Accepted | Product owner approved validation, normalization, uniqueness, selection, and immutability on 2026-11-12 |
 
 Record numbers here identify documentation files. They are independent of the master specification's ADR identifiers: record 0002 does not replace master ADR-002, which covers request handling.
 

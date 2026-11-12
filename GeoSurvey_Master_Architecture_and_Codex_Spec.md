@@ -749,14 +749,50 @@ migrations.
 -   `Region`
 -   `TenantRegistryEntry`
 -   `TenantDatabaseReference`
--   `UserOrganizationMembership` (if required by identity design)
+-   Organization-scoped account association (exact schema to be designed;
+    not a shared login with organization memberships)
 -   `RefreshToken` / `TokenFamily`
 -   `PlatformRole` / platform permission structures
 
-The identity design must clarify whether a person can belong to multiple
-organizations while maintaining independent organization accounts. The
-user selected independent organization accounts; do not assume global
-user identity automatically grants access to every tenant.
+**OPEN-001 resolved by the product owner on 2026-11-12:** Use separate
+accounts per organization. A person using multiple organizations has
+independent account records and credentials for each organization, even
+when the same email address is used. Matching email addresses must not
+link accounts, share credentials, or grant cross-organization access.
+
+This decision preserves the combined global identity + tenant registry
+database selected in DB-001. Global storage describes where identity
+records live, not a shared login identity across organizations. The exact
+account schema, organization-code rules, account recovery, and
+platform-administrator account model require design before implementation.
+See [decision record 0003](docs/decisions/0003-separate-organization-accounts.md).
+
+**Organization login approach approved on 2026-11-12:** Organization users
+sign in with organization code + email + password on both web and mobile.
+The server resolves the code through trusted registry data and validates
+credentials for that organization's account. The client-provided code
+selects the intended organization; it does not establish authenticated
+tenant context, grant access, or supply a database name/connection string.
+Subsequent tenant access must remain bound to the authenticated account
+and server-side authorization.
+
+See [decision record 0004](docs/decisions/0004-organization-code-login.md)
+for the login approach. Exact authentication API/schema and
+platform-administrator login remain undecided.
+
+**Organization-code rules approved on 2026-11-12:** The Platform
+Administrator chooses the code when creating an organization. Trim
+surrounding spaces and convert uppercase letters to lowercase before
+validation, storage, uniqueness checking, and login lookup. The normalized
+code must be 3-50 characters using only lowercase English letters
+(`a-z`), digits (`0-9`), and hyphens. Leading, trailing, and consecutive
+hyphens are invalid. Codes are unique across the platform and remain fixed
+after organization creation. The organization's display name is separate.
+For example, ` ACME-Surveys ` normalizes to `acme-surveys`.
+
+These are approved behavior rules, not implemented database constraints.
+Retired/deleted code reuse and reserved codes remain unspecified.
+See [decision record 0005](docs/decisions/0005-organization-code-rules.md).
 
 ### 6.2 Organization database entities
 
@@ -1407,12 +1443,11 @@ implementing the relevant feature.
   -------------------------------------------------------------------------
   ID                      Open question           Resolve before
   ----------------------- ----------------------- -------------------------
-  OPEN-001                Does one human user     Identity implementation
-                          have one global         
-                          identity with           
-                          memberships, or fully   
-                          separate credentials    
-                          per organization?       
+  OPEN-001                Resolved 2026-11-12:    Resolved; see section 6.1
+                          separate accounts and
+                          credentials per
+                          organization, including
+                          when email is reused.
 
   OPEN-002                Exact automatic         Survey submission
                           acceptance rule and     
