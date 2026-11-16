@@ -287,6 +287,16 @@ No required Phase 0 skeleton deliverable was found missing. Unresolved dependenc
 
 ## Architecture and working rules
 
+API startup now requires valid `ConnectionStrings:GlobalControlPlane` configuration with explicit Server and Database. Supply it through Development user-secrets or `ConnectionStrings__GlobalControlPlane`; see [API setup, scoped registration, and Docker instructions](docs/development/api-control-plane-configuration.md). Startup validates configuration without connecting or migrating; `/health/live` remains independent of database availability. Earlier Phase 0 run examples below/above describe their historical verification environment and now require this configuration.
+
+The [initial global migration](docs/development/initial-global-migration.md) and review SQL are generated using repository-local EF tooling. [Migration application tests](docs/development/migration-application-tests.md) now apply and reapply the migration only in a fresh disposable SQL Server database. The saved review SQL is not executed; other model-only fixtures still use `EnsureCreated`.
+
+The [global control-plane context](docs/development/control-plane-persistence-tests.md) now composes the module mappings and enforces the account-to-organization FK. It is covered by the same isolated backend SQL Server runner. Application outside disposable tests and API registration remain pending.
+
+Identity account/supporting mappings are verified by SQL Server tests in the same backend runner. See [Identity persistence implementation and test results](docs/development/identity-persistence-tests.md), including the explicitly deferred Organization FK and production global context.
+
+Organization mapping has SQL Server integration tests. After backend restore/build, run `./scripts/Test-Backend.ps1` with Docker's Linux engine running to execute the complete backend suite. A plain solution test command needs the isolated connection supplied by that script. See [Organization persistence and test instructions](docs/development/organization-persistence-tests.md) for dependencies, cleanup, and coverage.
+
 - [Master specification](GeoSurvey_Master_Architecture_and_Codex_Spec.md)
 - [Development instructions](AGENTS.md)
 - [Repository structure and dependency boundaries](docs/architecture/repository-structure.md)

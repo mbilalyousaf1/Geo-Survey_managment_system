@@ -1,3 +1,4 @@
+using GeoSurvey.Api.Configuration;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -10,6 +11,7 @@ builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfigurati
     .WriteTo.Console(new CompactJsonFormatter()));
 
 builder.Services.AddHealthChecks();
+builder.Services.AddGlobalControlPlanePersistence(builder.Configuration);
 
 var app = builder.Build();
 

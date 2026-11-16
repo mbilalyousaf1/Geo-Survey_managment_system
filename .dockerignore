@@ -1,4 +1,4 @@
-# Only API build inputs belong in this build context.
+# Only the API and its referenced production projects belong in this build context.
 **
 !global.json
 !Directory.Build.props
@@ -7,8 +7,19 @@
 !src/Backend/
 !src/Backend/GeoSurvey.Api/
 !src/Backend/GeoSurvey.Api/**
+!src/Backend/GeoSurvey.ControlPlane.Infrastructure/
+!src/Backend/GeoSurvey.ControlPlane.Infrastructure/**
+!src/Backend/Modules/
+!src/Backend/Modules/Identity/
+!src/Backend/Modules/Identity/GeoSurvey.Identity.Infrastructure/
+!src/Backend/Modules/Identity/GeoSurvey.Identity.Infrastructure/**
+!src/Backend/Modules/Organizations/
+!src/Backend/Modules/Organizations/GeoSurvey.Organizations.Domain/
+!src/Backend/Modules/Organizations/GeoSurvey.Organizations.Domain/**
+!src/Backend/Modules/Organizations/GeoSurvey.Organizations.Infrastructure/
+!src/Backend/Modules/Organizations/GeoSurvey.Organizations.Infrastructure/**
 
-# Exclude generated output, local IDE state, and credentials even under the API.
+# Exclude generated output, local IDE state, and credentials under all included projects.
 **/bin
 **/obj
 **/Properties

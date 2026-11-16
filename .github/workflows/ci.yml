@@ -37,8 +37,9 @@ jobs:
       - name: Build Release
         run: dotnet build GeoSurvey.sln --configuration Release --no-restore
 
-      - name: Run integration tests
-        run: dotnet test GeoSurvey.sln --configuration Release --no-build --no-restore
+      - name: Run backend tests with isolated SQL Server
+        shell: pwsh
+        run: ./scripts/Test-Backend.ps1
 
   frontend:
     name: Frontend format, build, and test

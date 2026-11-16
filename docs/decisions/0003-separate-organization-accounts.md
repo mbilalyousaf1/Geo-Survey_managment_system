@@ -26,7 +26,7 @@ Preserve DB-001: identity records and the tenant registry remain in the combined
 
 - Organization selection was subsequently resolved: [record 0004](0004-organization-code-login.md) specifies organization code + email + password for web and mobile; [record 0005](0005-organization-code-rules.md) defines code validation, normalization, uniqueness, selection, and immutability. Reserved codes and retired-code reuse remain open.
 - Exact account schema, normalization, and uniqueness constraints within an organization; email reuse across organizations must remain possible.
-- Platform-administrator identity scope and separation from organization accounts.
+- Platform-administrator scope and login were subsequently resolved in [record 0006](0006-platform-administrator-accounts.md). First-administrator creation was subsequently approved in [record 0007](0007-first-platform-administrator-bootstrap.md). Platform-admin MFA was subsequently approved in [record 0008](0008-platform-administrator-mfa.md). Organization-user MFA and exact identity schema remain open.
 - Account recovery, onboarding, and session/token design consistent with the master specification.
 
 These details are intentionally unresolved; resolving OPEN-001 does not approve them implicitly.

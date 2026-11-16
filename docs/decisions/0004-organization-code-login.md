@@ -20,7 +20,7 @@ An organization code is an account-selection input, not proof of membership or p
 - Email alone cannot select an account across organizations. The same email/password input must be checked only within the intended organization scope, not searched across tenants as a fallback.
 - No organization lookup endpoint, login endpoint, request DTO, database constraint, identity package, or UI behavior beyond the approved input selection is implemented by this record.
 - The combined global identity/registry database and separate organization operational databases remain unchanged.
-- Platform-administrator login is a separate unresolved design question; this record covers organization users only.
+- This record covers organization users only. Platform-administrator scope and dedicated email/password login were subsequently approved in [record 0006](0006-platform-administrator-accounts.md); First-administrator creation was subsequently approved in [record 0007](0007-first-platform-administrator-bootstrap.md); Platform-admin MFA was subsequently approved in [record 0008](0008-platform-administrator-mfa.md); organization-user MFA remains open.
 
 ## Details still to resolve
 

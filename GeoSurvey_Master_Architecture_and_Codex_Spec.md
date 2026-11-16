@@ -763,8 +763,8 @@ link accounts, share credentials, or grant cross-organization access.
 This decision preserves the combined global identity + tenant registry
 database selected in DB-001. Global storage describes where identity
 records live, not a shared login identity across organizations. The exact
-account schema, organization-code rules, account recovery, and
-platform-administrator account model require design before implementation.
+account schema and recovery flows require design before implementation.
+Subsequently approved code rules and platform account scope are recorded below.
 See [decision record 0003](docs/decisions/0003-separate-organization-accounts.md).
 
 **Organization login approach approved on 2026-11-12:** Organization users
@@ -777,8 +777,8 @@ Subsequent tenant access must remain bound to the authenticated account
 and server-side authorization.
 
 See [decision record 0004](docs/decisions/0004-organization-code-login.md)
-for the login approach. Exact authentication API/schema and
-platform-administrator login remain undecided.
+for the organization login approach. Exact authentication API/schema
+remains undecided; platform login is defined separately below.
 
 **Organization-code rules approved on 2026-11-12:** The Platform
 Administrator chooses the code when creating an organization. Trim
@@ -793,6 +793,80 @@ For example, ` ACME-Surveys ` normalizes to `acme-surveys`.
 These are approved behavior rules, not implemented database constraints.
 Retired/deleted code reuse and reserved codes remain unspecified.
 See [decision record 0005](docs/decisions/0005-organization-code-rules.md).
+
+**Platform Administrator account scope and login approved on 2026-11-12:**
+Use explicit platform-scoped accounts, separate from organization accounts,
+stored in the combined global identity/tenant registry database. A dedicated
+platform-admin login accepts email + password without an organization code.
+Access is limited to authorized platform operations such as organization
+creation and provisioning management. Platform-admin status alone does not
+grant access to tenant operational data, including surveys.
+
+Exact account schema and authentication API/session implementation
+remain unresolved. First-administrator creation and MFA policy are defined below. This
+decision does not approve tenant impersonation or a support-access workflow.
+See [decision record 0006](docs/decisions/0006-platform-administrator-accounts.md).
+
+**First Platform Administrator bootstrap approved on 2026-11-12:** An
+authorized operator runs a one-time administrative command in the
+deployment environment. It creates the first platform-scoped administrator
+only when no Platform Administrator exists, using the application's
+password-hashing mechanism. Password entry uses a masked prompt, not a
+command-line argument or committed configuration. No default credentials
+or public administrator-registration endpoint are permitted. Re-running
+bootstrap must not overwrite accounts or reset credentials.
+
+Subsequent administrator creation, account recovery, and exact
+bootstrap implementation/concurrency controls remain separate decisions.
+See [decision record 0007](docs/decisions/0007-first-platform-administrator-bootstrap.md).
+
+**Platform Administrator MFA policy approved on 2026-11-12:** Require
+authenticator-app TOTP for every Platform Administrator. MFA enrollment
+must be completed before platform administration is permitted. Login
+requires password plus an authenticator code. Provide single-use recovery
+codes; MFA reset and administrative recovery require a separately designed
+workflow. Organization-user MFA remains undecided. Exact enrollment,
+verification, storage, recovery-code consumption, and session behavior
+remain implementation design tasks.
+See [decision record 0008](docs/decisions/0008-platform-administrator-mfa.md).
+
+**Account email rules approved on 2026-11-12:** Trim surrounding
+whitespace and reject embedded whitespace. Require an email address,
+with the exact syntax validator chosen during implementation. Lookup
+uses consistent invariant normalization and case-insensitive comparison.
+Preserve the trimmed address for display and store a normalized lookup
+value. Do not remove provider-specific dots or `+tags`.
+
+Email is unique within each organization and reusable across organizations.
+Platform-account email is unique within platform scope. Matching emails
+across platform/organization scopes do not link accounts or credentials.
+This is an application account policy, not a statement about every email
+provider. Exact normalization implementation, email changes, verification,
+and recovery remain separate decisions.
+See [decision record 0009](docs/decisions/0009-account-email-rules.md).
+
+**Identity framework approach approved on 2026-11-12:** Use ASP.NET Core
+Identity with EF Core persistence in the combined global control-plane
+database. Keep framework/persistence dependencies in Infrastructure and
+Domain dependency-free. Customize scoped account lookup and uniqueness,
+platform-account separation, organization login, bootstrap, and mandatory
+platform MFA to meet the approved decisions. Do not assume default Identity
+configuration enforces these requirements.
+
+Exact account tables, schema, Identity customizations, package versions,
+JWT/refresh-token lifecycle, secret protection, and recovery/session flows
+still require design review before implementation.
+See [decision record 0010](docs/decisions/0010-aspnet-core-identity-ef-core.md).
+
+**Account table strategy approved on 2026-11-12:** Use one Identity account
+table in the global control-plane database, with independent account rows
+and credentials. Explicit Platform/Organization scope and database checks
+require an organization reference only for Organization accounts. Enforce
+email uniqueness within the resolved organization or Platform scope, not
+globally across all accounts. Login lookup must never fall back across
+organizations or scopes. Internal usernames, GUID generation, exact SQL
+mapping, and framework customizations require separate design.
+See [decision record 0011](docs/decisions/0011-scoped-single-account-table.md).
 
 ### 6.2 Organization database entities
 
@@ -844,6 +918,87 @@ identification.
 Use unique constraints on `PublicId`. Do not expose sequential internal
 IDs in public APIs. Decide whether GUIDs are generated by the
 application or database and use one consistent strategy.
+
+**Account generation approved on 2026-11-12:** Account internal integer
+IDs are database-generated. Generate account `PublicId` in the application
+using `Guid.NewGuid()`. Derive Identity's internal username with
+`PublicId.ToString("N")` (32 hexadecimal characters, no hyphens). Keep both
+the PublicId and username fixed after account creation. Users log in with
+email, not this internal username; organization accounts also require
+organization code. Unique indexes and authorization remain required.
+Generation for other entity types remains to be designed consistently.
+See [decision record 0012](docs/decisions/0012-account-identifiers-and-usernames.md).
+
+**Account email validation contract approved on 2026-11-12:** Reject null,
+trim input using `.Trim()`, and reject empty input or remaining whitespace.
+Accept only ASCII addresses up to 254 characters after trimming, with
+basic syntax validation through .NET `EmailAddressAttribute`. Preserve
+the trimmed display email and generate its lookup value through Identity's
+`UpperInvariantLookupNormalizer`. Preserve dots and `+tags`. Apply this
+consistently to account creation and login in both account scopes.
+Internationalized addresses, automatic domain conversion, ownership
+verification, and recovery flows are not introduced by this decision.
+See [decision record 0013](docs/decisions/0013-email-validation-contract.md).
+
+**Account SQL mapping choices approved on 2026-11-13:** Map accounts to
+`identity.Accounts`; persist required scope as integer Platform = 1 or
+Organization = 2. Email/NormalizedEmail are required `nvarchar(254)`;
+UserName/NormalizedUserName are required `nvarchar(32)`. Use column-level
+`Latin1_General_100_BIN2` for normalized email and username values, after
+application normalization. Enforce scoped email uniqueness with separate
+filtered unique indexes. The organization foreign key uses `NO ACTION`
+deletion behavior. Organization table/key ownership, global context and
+migration coordination, and remaining mapping details require design
+before implementation. Binary collation is not an email validator.
+See [decision record 0014](docs/decisions/0014-account-sql-mapping-choices.md).
+
+**Control-plane persistence ownership approved on 2026-11-13:** Organizations
+owns its entity/code rules and table configuration; Identity owns account
+entities and table configuration. A control-plane Infrastructure project
+composes these mappings into one global DbContext and migration history.
+Runtime module interactions remain through explicit application contracts;
+shared composition does not grant cross-module private-table access.
+
+The organization table is `organization.Organizations`, with database-generated
+integer `Id` and unique public GUID `PublicId`. The account OrganizationId
+FK references that table's Id using NO ACTION. One global migration stream
+coordinates creation order; tenant operational databases remain separate.
+Exact organization fields, organization GUID generation, context/project
+structure, and implementation require separate approval.
+See [decision record 0015](docs/decisions/0015-control-plane-persistence-ownership.md).
+
+**Minimal Organization fields approved on 2026-11-13:** Database-generated
+integer Id; application-generated PublicId using `Guid.NewGuid()`; existing
+OrganizationCode value object; required trimmed DisplayName of 1-200
+characters, not unique; and CreatedAtUtc as UTC `DateTimeOffset` assigned
+on creation. PublicId and Code stay fixed. Use a private constructor and
+a creation method in Organizations Domain. This minimal entity introduces
+no rename/deletion operations, provisioning status, region, or tenant
+database fields; those require separate design. No persistence is implied.
+See [decision record 0016](docs/decisions/0016-minimal-organization-entity.md).
+
+**Organization mapping/materialization approved on 2026-11-13:** Map Code
+as required unique `nvarchar(50)` with column-level `Latin1_General_100_BIN2`,
+converting through OrganizationCode.Value/Create. DisplayName is required
+non-unique `nvarchar(200)`; CreatedAtUtc is required `datetimeoffset(7)`,
+application-assigned UTC. PublicId remains application-assigned and unique,
+with no database GUID default. Use a private mapped-property constructor
+for materialization without generating new identity/time; retain Create
+as the ordinary creation path. Exact context/project structure and
+implementation require separate approval; Domain remains dependency-free.
+See [decision record 0017](docs/decisions/0017-organization-mapping-and-materialization.md).
+
+**Global persistence composition structure approved on 2026-11-13:**
+GeoSurvey.Organizations.Infrastructure owns Organization mapping/conversion;
+GeoSurvey.Identity.Infrastructure owns account/Identity mapping.
+GeoSurvey.ControlPlane.Infrastructure references those module Infrastructure
+projects and composes explicit registrations into GlobalControlPlaneDbContext,
+including the account-to-organization FK. Modules do not reference the
+control-plane project back. Use one global migration stream with
+`controlplane.__EFMigrationsHistory`. Introduce use-case-specific persistence
+capabilities only as needed; do not expose the unrestricted global context
+to application services. Implement through separately approved small slices.
+See [decision record 0018](docs/decisions/0018-global-persistence-composition.md).
 
 ### 6.5 Time strategy
 
@@ -1368,6 +1523,17 @@ Create an `AGENTS.md` at the repository root containing these rules.
 Codex must follow them for every task.
 
 ### 17.1 How Codex should work
+
+**Working-process update from the product owner, 2026-11-13:** Routine
+documentation creation and maintenance is autonomous and requires no
+separate approval. Record approved decisions and synchronize documentation
+without interrupting development. Before significant code or architecture
+changes and technical trade-offs, explain what changes, why, and how, then
+wait for approval. Minor non-functional code adjustments may proceed with
+a clear afterward summary. Documentation autonomy does not approve new
+architecture or implementation; keep unapproved designs marked Proposed.
+Continue teaching and reporting exact verification results. Commit/push
+permission remains separate. See `AGENTS.md` for the current workflow.
 
 1.  Read this master specification and `AGENTS.md` before making
     changes.

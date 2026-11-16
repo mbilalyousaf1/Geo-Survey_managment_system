@@ -1,13 +1,12 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace GeoSurvey.Api.IntegrationTests;
 
-public sealed class LivenessTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class LivenessTests : IClassFixture<ConfiguredApiFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly ConfiguredApiFactory _factory;
 
-    public LivenessTests(WebApplicationFactory<Program> factory)
+    public LivenessTests(ConfiguredApiFactory factory)
     {
         _factory = factory;
     }

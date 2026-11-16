@@ -4,7 +4,7 @@
 
 - Read `GeoSurvey_Master_Architecture_and_Codex_Spec.md` and this file before making changes.
 - The master specification is the architecture and requirements baseline. Distinguish confirmed decisions, proposals, and open questions.
-- Start with Phase 0 only. Do not implement business features until the foundation is approved and complete.
+- Phase 0 was accepted by the user. Continue Phase 1 only through small tasks, subject to the approval rules below; do not expand into later phases without instructions.
 - Work on one small, reviewable task at a time. Never generate the entire application in one pass.
 - Do not move to another task without the user's instructions.
 
@@ -12,11 +12,20 @@
 
 1. Explain the concept, what is being built, and why it is needed.
 2. Propose the design, affected files/projects/modules, database/API impact, security implications, dependencies, and relevant tests.
-3. Show the implementation plan and wait for approval before substantial implementation.
-4. Implement only the approved task. Explain any necessary change to unrelated code before making it.
+3. Before significant code changes, architectural decisions, or significant technical trade-offs, explain what, why, and how; show the affected files and implementation plan, then wait for approval.
+4. Implement only the authorized task. Routine documentation maintenance requires no separate approval. Minor non-functional code adjustments may proceed without separate approval, but must be clearly summarized afterward. Explain any necessary change to unrelated code before making it.
 5. Explain important generated classes, interfaces, methods, and patterns in simple language; use Roman Urdu when helpful.
 6. Run relevant build, tests, formatting, and static checks. Report exact commands, failures, and skipped checks. Never claim an unexecuted check passed.
 7. Explain the results and recommend the next small task, then wait for instructions.
+
+## Documentation autonomy and learning
+
+- Automatically create, update, reorganize, and maintain README files, ADRs, specifications, development notes, and progress reports as the approved work evolves. Do not interrupt development to request approval for documentation-only maintenance.
+- Documentation autonomy does not approve new architecture, business rules, packages, significant code, or database changes. Present significant choices for review; keep proposals explicitly proposed until the user accepts them.
+- Record accepted decisions directly without asking for an additional documentation approval.
+- Keep teaching central: explain engineering reasoning and trade-offs before significant implementation, then explain the resulting code and exact verification evidence afterward.
+- A documentation link/whitespace check passing is not evidence of a passing application build, runtime check, or test. Identify each check and distinguish previous results from checks run in the current task.
+- Git commit/push authorization remains separate, including for documentation changes.
 
 ## Architecture and implementation
 
