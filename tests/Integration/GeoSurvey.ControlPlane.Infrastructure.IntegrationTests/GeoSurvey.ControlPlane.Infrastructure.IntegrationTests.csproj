@@ -10,4 +10,7 @@
     <Using Include="Xunit" />
     <ProjectReference Include="../../../src/Backend/GeoSurvey.ControlPlane.Infrastructure/GeoSurvey.ControlPlane.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="../../../deploy/sql/bootstrap-role.sql" Link="bootstrap-role.sql" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

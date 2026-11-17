@@ -287,6 +287,14 @@ No required Phase 0 skeleton deliverable was found missing. Unresolved dependenc
 
 ## Architecture and working rules
 
+The [bootstrap console and operator runbook](docs/development/bootstrap-console.md) now provide masked interactive first-administrator creation through the tested service. It requires a dedicated operator connection and existing reviewed database setup. MFA enrollment/login and later Phase 1 workflows remain pending; no real administrator was created during implementation.
+
+The [transactional bootstrap creation service](docs/development/bootstrap-creation-service.md) and reviewed role-setup script now exist with SQL Server concurrency, rollback, timeout, and restricted-permission tests. The service is not registered in the API; no console or real administrator creation has been performed.
+
+[Permanent bootstrap-completion storage](docs/development/bootstrap-completion-storage.md) now adds the singleton table and a tested second migration. Atomic administrator creation and the operator command remain pending; the table is not seeded during migration.
+
+The [bootstrap password base components](docs/development/bootstrap-password-components.md) and [verified local blocklist](docs/development/local-password-blocklist.md) now implement accepted normalization/length, hashing settings, and corpus checks. Account creation and command/API integration remain pending.
+
 API startup now requires valid `ConnectionStrings:GlobalControlPlane` configuration with explicit Server and Database. Supply it through Development user-secrets or `ConnectionStrings__GlobalControlPlane`; see [API setup, scoped registration, and Docker instructions](docs/development/api-control-plane-configuration.md). Startup validates configuration without connecting or migrating; `/health/live` remains independent of database availability. Earlier Phase 0 run examples below/above describe their historical verification environment and now require this configuration.
 
 The [initial global migration](docs/development/initial-global-migration.md) and review SQL are generated using repository-local EF tooling. [Migration application tests](docs/development/migration-application-tests.md) now apply and reapply the migration only in a fresh disposable SQL Server database. The saved review SQL is not executed; other model-only fixtures still use `EnsureCreated`.
@@ -302,3 +310,15 @@ Organization mapping has SQL Server integration tests. After backend restore/bui
 - [Repository structure and dependency boundaries](docs/architecture/repository-structure.md)
 
 Work on a feature branch and implement one approved small task at a time.
+
+The [restricted MFA challenge storage/service](docs/development/mfa-challenges.md) is implemented with hash-only ten-minute tokens and SQL concurrency tests. Latest local backend verification: 257 passing tests. Authenticator enrollment and administrator login remain pending.
+
+The [account-bound TOTP secret protector](docs/development/totp-secret-protection.md) is implemented and tested. Persistent certificate-protected host keys and authenticator enrollment are the next integration work; the API does not yet enable this component.
+
+API startup now requires [persistent certificate-protected Data Protection configuration](docs/development/data-protection-host.md), including an external key-ring directory and mounted PFX/password. Configure these alongside the control-plane connection before running the API; no real key material is committed.
+
+[Protected pending authenticator enrollment](docs/development/pending-totp-enrollment.md) is implemented as an internal service and fourth migration. It validates enrollment challenges and stores ciphertext without enabling MFA; authenticator confirmation and login are still pending.
+
+The [TOTP primitive](docs/development/totp-primitive.md) now generates canonical authenticator secrets and verifies the approved six-digit codes. Attempt/replay controls and atomic enrollment confirmation remain pending before API integration.
+
+[Persistent MFA attempt/replay controls](docs/development/mfa-attempt-replay-controls.md) now enforce the approved five-failure/15-minute budget and account-level accepted-step history. Full local backend verification: 370 tests passed. Confirmed enrollment and public authentication still require integration.

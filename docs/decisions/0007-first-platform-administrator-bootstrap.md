@@ -29,6 +29,16 @@ No bootstrap executable, account creation service, identity package, endpoint, m
 
 ## Remaining decisions
 
+Permanent one-time completion was subsequently accepted in [record 0027](0027-permanent-bootstrap-completion.md): commit a durable marker atomically with account/claim creation; deletion or lockout does not re-enable bootstrap. Recovery remains separately authorized and unimplemented.
+
+Console packaging and operator boundary were subsequently accepted in [record 0026](0026-bootstrap-console-and-operator-access.md). A separate console tool uses deployment access and a dedicated bootstrap credential; exact grants/credential setup and the concrete code plan remain pending. Disabled/deleted administrator behavior must be resolved before creation is enabled.
+
+Base password rules and hashing were subsequently accepted in [record 0023](0023-bootstrap-base-password-policy.md). The blocklist source/operations, concrete integration, and remaining operational/security choices remain open; earlier open-policy statements describe their original stage.
+
+Concurrency design was subsequently accepted in [record 0022](0022-bootstrap-transaction-and-lock.md): a transaction-owned application lock with a 30-second timeout, existence recheck under lock, and atomic account/claim creation. Earlier references to the transactional guard being open describe the original decision stage. Implementation and the other security/operational choices remain pending.
+
+Administrator representation was subsequently approved in [record 0021](0021-platform-administrator-claim.md): Platform scope plus a server-managed `geosurvey:platform-role` / `administrator` claim. Bootstrap must create account and claim atomically; administration also requires completed MFA. Concurrency enforcement and the remaining command/security choices below still need review.
+
 - MFA policy was subsequently approved in [record 0008](0008-platform-administrator-mfa.md); enrollment implementation and reset/recovery workflow still require design.
 - Exact command packaging, operator authorization, and deployment runbook.
 - Identity schema, password policy/hashing implementation, and concurrency enforcement.

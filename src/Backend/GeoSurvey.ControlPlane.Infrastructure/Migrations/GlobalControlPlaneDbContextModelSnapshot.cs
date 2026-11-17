@@ -22,6 +22,23 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("GeoSurvey.ControlPlane.Infrastructure.Bootstrap.BootstrapCompletion", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CompletedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BootstrapCompletion", "controlplane", t =>
+                        {
+                            t.HasCheckConstraint("CK_BootstrapCompletion_Singleton", "[Id] = 1");
+                        });
+                });
+
             modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.IdentityAccount", b =>
                 {
                     b.Property<int>("Id")
@@ -117,6 +134,122 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
                         {
                             t.HasCheckConstraint("CK_Accounts_ScopeOrganization", "([AccountScope] = 1 AND [OrganizationId] IS NULL) OR ([AccountScope] = 2 AND [OrganizationId] IS NOT NULL AND [OrganizationId] > 0)");
                         });
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.MfaChallenge", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("ConsumedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<int>("Purpose")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("RevokedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("AccountId", "Purpose")
+                        .IsUnique()
+                        .HasFilter("[ConsumedAtUtc] IS NULL AND [RevokedAtUtc] IS NULL");
+
+                    b.ToTable("MfaChallenges", "identity", t =>
+                        {
+                            t.HasCheckConstraint("CK_MfaChallenges_Expiry", "[ExpiresAtUtc] > [CreatedAtUtc]");
+
+                            t.HasCheckConstraint("CK_MfaChallenges_Purpose", "[Purpose] IN (1, 2)");
+                        });
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.MfaVerificationState", b =>
+                {
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("BlockedUntilUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<int>("FailedAttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("FailureWindowStartedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<long?>("LastAcceptedStep")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("AccountId");
+
+                    b.ToTable("MfaVerificationStates", "identity", t =>
+                        {
+                            t.HasCheckConstraint("CK_MfaVerificationStates_Block", "[BlockedUntilUtc] IS NULL OR [FailedAttemptCount] = 5");
+
+                            t.HasCheckConstraint("CK_MfaVerificationStates_Count", "[FailedAttemptCount] BETWEEN 0 AND 5");
+
+                            t.HasCheckConstraint("CK_MfaVerificationStates_Step", "[LastAcceptedStep] IS NULL OR [LastAcceptedStep] >= 0");
+
+                            t.HasCheckConstraint("CK_MfaVerificationStates_Window", "([FailedAttemptCount] = 0 AND [FailureWindowStartedAtUtc] IS NULL) OR ([FailedAttemptCount] > 0 AND [FailureWindowStartedAtUtc] IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.PendingTotpEnrollment", b =>
+                {
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ChallengeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("ProtectedSecret")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AccountId");
+
+                    b.HasIndex("ChallengeId")
+                        .IsUnique();
+
+                    b.HasIndex("ChallengeId", "AccountId");
+
+                    b.ToTable("PendingTotpEnrollments", "identity");
                 });
 
             modelBuilder.Entity("GeoSurvey.Organizations.Domain.Organization", b =>
@@ -230,6 +363,40 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.MfaChallenge", b =>
+                {
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.IdentityAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.MfaVerificationState", b =>
+                {
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.IdentityAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.PendingTotpEnrollment", b =>
+                {
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.IdentityAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.Mfa.MfaChallenge", null)
+                        .WithMany()
+                        .HasForeignKey("ChallengeId", "AccountId")
+                        .HasPrincipalKey("Id", "AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>

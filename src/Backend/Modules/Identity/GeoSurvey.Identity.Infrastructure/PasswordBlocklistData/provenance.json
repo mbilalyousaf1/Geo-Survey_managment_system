@@ -1,0 +1,18 @@
+{
+  "source": "SecLists",
+  "upstreamCommit": "4d5e414c9631f3c12ee1ac86ff7234d848391fd3",
+  "sourceUrl": "https://raw.githubusercontent.com/danielmiessler/SecLists/4d5e414c9631f3c12ee1ac86ff7234d848391fd3/Passwords/Common-Credentials/xato-net-10-million-passwords-1000000.txt",
+  "licenseUrl": "https://raw.githubusercontent.com/danielmiessler/SecLists/4d5e414c9631f3c12ee1ac86ff7234d848391fd3/LICENSE",
+  "license": "MIT (upstream published notice retained)",
+  "retrievedOn": "2026-11-16",
+  "encoding": "UTF-8",
+  "sha256": "424A3E03A17DF0A2BC2B3CA749D81B04E79D59CB7AEEC8876A5A3F308D0CAF51",
+  "bytes": 8557632,
+  "records": 1000000,
+  "uniqueNfcNonemptyEntries": 999996,
+  "duplicateNfcEntries": 3,
+  "emptyRecords": 1,
+  "nfcChangedEntries": 0,
+  "invalidUtf8Entries": 0,
+  "processing": "Original source bytes preserved. Runtime checksum verification precedes strict UTF-8 decoding; ignore and count empty framing records, normalize nonempty values to NFC, deduplicate with ordinal comparison. No length filtering, case folding, or whitespace trimming."
+}

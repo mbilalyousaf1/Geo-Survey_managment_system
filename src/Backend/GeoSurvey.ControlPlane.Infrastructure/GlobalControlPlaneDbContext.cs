@@ -1,4 +1,6 @@
+using GeoSurvey.ControlPlane.Infrastructure.Bootstrap;
 using GeoSurvey.Identity.Infrastructure;
+using GeoSurvey.Identity.Infrastructure.Mfa;
 using GeoSurvey.Identity.Infrastructure.Persistence;
 using GeoSurvey.Organizations.Domain;
 using GeoSurvey.Organizations.Infrastructure.Persistence;
@@ -23,12 +25,17 @@ public sealed class GlobalControlPlaneDbContext : IdentityUserContext<IdentityAc
     }
 
     public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<BootstrapCompletion> BootstrapCompletions => Set<BootstrapCompletion>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         builder.ApplyGeoSurveyIdentityMappings();
         builder.ApplyConfiguration(new OrganizationConfiguration());
+        builder.ApplyConfiguration(new BootstrapCompletionConfiguration());
+        builder.ApplyConfiguration(new MfaChallengeConfiguration());
+        builder.ApplyConfiguration(new PendingTotpEnrollmentConfiguration());
+        builder.ApplyConfiguration(new MfaVerificationStateConfiguration());
         builder.Entity<IdentityAccount>().HasOne<Organization>().WithMany()
             .HasForeignKey(account => account.OrganizationId).IsRequired(false)
             .OnDelete(DeleteBehavior.NoAction);

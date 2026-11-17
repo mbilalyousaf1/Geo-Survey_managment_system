@@ -1,5 +1,7 @@
 # Initial migration application tests
 
+Current update, 2026-11-17: [bootstrap-completion storage](bootstrap-completion-storage.md) adds a second migration. Current fresh-install and history tests expect both migrations and seven physical tables including history; a separate fixture tests upgrading from the unchanged initial migration. Original results/counts below describe the earlier single-migration slice.
+
 Implementation and verification date: 2026-11-16.
 
 Six new SQL Server tests execute the generated initial migration against a fresh disposable database. This closes the gap between generating/reviewing a migration and proving its `Up` operations work. Production application code, migration files, packages, and the Docker runner are unchanged.

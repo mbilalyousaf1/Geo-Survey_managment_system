@@ -6,8 +6,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.9" />
-    <!-- Patch SqlClient's transitive dependency, matching Organization SQL Server tests. -->
-    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
+    <!-- Patch SqlClient's transitive dependency, compatible with Data Protection. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />

@@ -33,26 +33,31 @@ public sealed class MigrationApplicationTests(MigrationDatabase database) : ICla
     {
         Assert.True(database.StartedWithoutDatabase);
         await using var context = database.CreateContext();
-        var expectedMigration = Assert.Single(context.Database.GetMigrations());
-        Assert.EndsWith("_InitialGlobalControlPlane", expectedMigration);
-        Assert.Equal(new[] { expectedMigration }, await context.Database.GetAppliedMigrationsAsync());
+        var expectedMigrations = context.Database.GetMigrations().ToArray();
+        Assert.Equal(5, expectedMigrations.Length);
+        Assert.EndsWith("_InitialGlobalControlPlane", expectedMigrations[0]);
+        Assert.EndsWith("_AddBootstrapCompletion", expectedMigrations[1]);
+        Assert.EndsWith("_AddMfaChallenges", expectedMigrations[2]);
+        Assert.EndsWith("_AddPendingTotpEnrollments", expectedMigrations[3]);
+        Assert.EndsWith("_AddMfaVerificationStates", expectedMigrations[4]);
+        Assert.Equal(expectedMigrations, await context.Database.GetAppliedMigrationsAsync());
         Assert.Empty(await context.Database.GetPendingMigrationsAsync());
 
-        var row = Assert.Single(await ReadHistoryAsync(context));
-        Assert.Equal(expectedMigration, row.MigrationId);
-        Assert.Equal("10.0.9", row.ProductVersion);
+        var rows = await ReadHistoryAsync(context);
+        Assert.Equal(expectedMigrations, rows.OrderBy(row => row.MigrationId).Select(row => row.MigrationId));
+        Assert.All(rows, row => Assert.Equal("10.0.9", row.ProductVersion));
         var tables = await context.Database.SqlQuery<string>(
             $"SELECT [s].[name] + '.' + [t].[name] AS [Value] FROM [sys].[tables] AS [t] INNER JOIN [sys].[schemas] AS [s] ON [s].[schema_id] = [t].[schema_id] WHERE [t].[is_ms_shipped] = 0").ToListAsync();
-        Assert.Equal(new[] { "controlplane.__EFMigrationsHistory", "identity.AccountClaims", "identity.AccountLogins", "identity.AccountTokens", "identity.Accounts", "organization.Organizations" },
+        Assert.Equal(new[] { "controlplane.BootstrapCompletion", "controlplane.__EFMigrationsHistory", "identity.AccountClaims", "identity.AccountLogins", "identity.AccountTokens", "identity.Accounts", "identity.MfaChallenges", "identity.MfaVerificationStates", "identity.PendingTotpEnrollments", "organization.Organizations" },
             tables.Order(StringComparer.Ordinal));
         var foreignKeyActions = await context.Database.SqlQuery<int>(
             $"SELECT CAST([delete_referential_action] AS int) AS [Value] FROM [sys].[foreign_keys]").ToListAsync();
-        Assert.Equal(4, foreignKeyActions.Count);
+        Assert.Equal(8, foreignKeyActions.Count);
         Assert.All(foreignKeyActions, action => Assert.Equal(0, action));
     }
 
     [Fact]
-    public async Task Reapply_PreservesExistingRowsAndSingleHistoryEntry()
+    public async Task Reapply_PreservesExistingRowsAndHistoryEntries()
     {
         var organization = await PersistOrganizationAsync();
         var account = IdentityAccount.CreateOrganizationAccount(organization.Id, NewEmail());
@@ -79,10 +84,10 @@ public sealed class MigrationApplicationTests(MigrationDatabase database) : ICla
         Assert.Equal(account.Email, loadedAccount.Email);
         Assert.Equal(account.NormalizedEmail, loadedAccount.NormalizedEmail);
         Assert.Equal(account.ConcurrencyStamp, loadedAccount.ConcurrencyStamp);
-        var after = Assert.Single(await ReadHistoryAsync(reader));
-        var original = Assert.Single(before);
-        Assert.Equal(original.MigrationId, after.MigrationId);
-        Assert.Equal(original.ProductVersion, after.ProductVersion);
+        var after = await ReadHistoryAsync(reader);
+        Assert.Equal(5, after.Count);
+        Assert.Equal(before.OrderBy(row => row.MigrationId).Select(row => (row.MigrationId, row.ProductVersion)),
+            after.OrderBy(row => row.MigrationId).Select(row => (row.MigrationId, row.ProductVersion)));
         Assert.Empty(await reader.Database.GetPendingMigrationsAsync());
     }
 

@@ -55,7 +55,7 @@ public sealed class DesignTimeFactoryTests
         {
             using var context = new GlobalControlPlaneDbContextFactory().CreateDbContext([]);
             Assert.Equal("Microsoft.EntityFrameworkCore.SqlServer", context.Database.ProviderName);
-            Assert.Equal(5, context.Model.GetEntityTypes().Count());
+            Assert.Equal(9, context.Model.GetEntityTypes().Count());
             Assert.Null(context.Model.FindEntityType(typeof(IdentityUserPasskey<int>)));
             Assert.Equal(256, context.Model.FindEntityType(typeof(IdentityAccount))!.FindProperty(nameof(IdentityAccount.PhoneNumber))!.GetMaxLength());
             Assert.Contains("[controlplane].[__EFMigrationsHistory]", context.GetService<IHistoryRepository>().GetCreateScript());
@@ -68,13 +68,20 @@ public sealed class DesignTimeFactoryTests
         WithConnection(OfflineConnection, () =>
         {
             using var context = new GlobalControlPlaneDbContextFactory().CreateDbContext([]);
-            var migration = Assert.Single(context.Database.GetMigrations());
-            Assert.EndsWith("_InitialGlobalControlPlane", migration);
+            var migrations = context.Database.GetMigrations().ToArray();
+            Assert.Equal(5, migrations.Length);
+            Assert.EndsWith("_InitialGlobalControlPlane", migrations[0]);
+            Assert.EndsWith("_AddBootstrapCompletion", migrations[1]);
+            Assert.EndsWith("_AddMfaChallenges", migrations[2]);
+            Assert.EndsWith("_AddPendingTotpEnrollments", migrations[3]);
+            Assert.EndsWith("_AddMfaVerificationStates", migrations[4]);
             Assert.False(context.Database.HasPendingModelChanges());
             var sql = context.GetService<IMigrator>().GenerateScript();
-            foreach (var table in new[] { "Accounts", "AccountClaims", "AccountLogins", "AccountTokens" })
+            foreach (var table in new[] { "Accounts", "AccountClaims", "AccountLogins", "AccountTokens", "MfaChallenges", "MfaVerificationStates", "PendingTotpEnrollments" })
                 Assert.Contains($"CREATE TABLE [identity].[{table}]", sql);
             Assert.Contains("CREATE TABLE [organization].[Organizations]", sql);
+            Assert.Contains("CREATE TABLE [controlplane].[BootstrapCompletion]", sql);
+            Assert.Contains("[CK_BootstrapCompletion_Singleton]", sql);
             Assert.Contains("[CK_Accounts_ScopeOrganization]", sql);
             Assert.Contains("[UX_Accounts_OrganizationEmail]", sql);
             Assert.Contains("WHERE [AccountScope] = 2", sql);

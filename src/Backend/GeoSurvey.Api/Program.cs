@@ -12,6 +12,7 @@ builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfigurati
 
 builder.Services.AddHealthChecks();
 builder.Services.AddGlobalControlPlanePersistence(builder.Configuration);
+builder.Services.AddGeoSurveyDataProtection(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

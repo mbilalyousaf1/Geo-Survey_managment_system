@@ -744,6 +744,8 @@ migrations.
 
 ### 6.1 Global control-plane entities
 
+Platform Administrator representation approved on 2026-11-16: use the server-managed `geosurvey:platform-role` claim with value `administrator` in existing account-claim storage. Platform scope alone is insufficient; platform administration also requires administrator status and completed MFA. Bootstrap account/claim creation must be atomic and refuse an existing administrator. Concurrency enforcement and operational implementation remain open. See [decision record 0021](docs/decisions/0021-platform-administrator-claim.md).
+
 -   `User`
 -   `Organization`
 -   `Region`
@@ -1558,7 +1560,7 @@ permission remains separate. See `AGENTS.md` for the current workflow.
 11. Do not bypass authorization for convenience.
 12. Do not create fake implementations or placeholder success responses
     for unfinished features.
-13. Update tests and relevant docs with every feature.
+13. Update tests and relevant docs with every feature without asking.
 14. Run relevant build, tests, formatting, and static checks before
     declaring completion.
 15. Report exact commands run and any failures or skipped checks.
@@ -1743,3 +1745,15 @@ Use this document as the master context in the Codex workspace.
 continuously, and preserve the decisions in this document. The goal is
 not merely to generate code; it is to build a maintainable, secure GIS
 SaaS product while learning real software system design.
+
+Restricted MFA challenge storage approved 2026-11-17: ten-minute opaque tokens, SHA-256 digest-only persistence, enrollment/verification purposes, account/security-stamp binding, replacement, and atomic one-time consumption. See [ADR 0030](docs/decisions/0030-restricted-mfa-challenges.md). This is an internal lifecycle component; authentication and TOTP workflows remain pending.
+
+TOTP secret protection approved 2026-11-17: ASP.NET Core Data Protection with a versioned purpose bound to the account PublicId. Deployment direction: persistent external key ring encrypted with an operator-provided certificate. See [ADR 0031](docs/decisions/0031-totp-secret-protection.md). Component implementation does not enable MFA enrollment or production key configuration.
+
+API Data Protection host configuration approved 2026-11-17: mounted PFX with secret-supplied password, external persistent key ring, stable environment-specific application name, and startup verification. See [ADR 0032](docs/decisions/0032-api-data-protection-host.md). No enrollment/authentication endpoint is enabled.
+
+Pending authenticator-secret persistence approved 2026-11-17: account-bound ciphertext associated with a valid enrollment challenge, serialized writes, no same-challenge overwrite, and no MFA enablement without future verification. See [ADR 0033](docs/decisions/0033-pending-totp-enrollment-storage.md).
+
+TOTP parameters/primitive approved 2026-11-17: random 20-byte canonical Base32 secrets; six-digit HMAC-SHA1 codes, 30-second steps, Unix epoch, and current +/- one step. A small RFC implementation using .NET primitives returns the matched step for later atomic replay enforcement. See [ADR 0034](docs/decisions/0034-totp-primitive.md). It does not grant authentication or enable public MFA flows.
+
+Platform Administrator MFA attempt/replay policy approved 2026-11-17: five valid-challenge code failures in a 15-minute window trigger a 15-minute account MFA block; replacement challenges do not reset the budget. Persist accepted TOTP steps, reject reuse/older steps, and require atomic completion/nonce consumption. See [ADR 0035](docs/decisions/0035-mfa-attempt-replay-controls.md). No public confirmation/login endpoint or confirmed MFA credential is enabled by the storage slice.

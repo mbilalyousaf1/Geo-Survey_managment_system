@@ -146,6 +146,10 @@ Recommendation: ready for user acceptance with documented limitations, rather th
 
 ## Module persistence implementation
 
+Operator console, 2026-11-17: `src/Backend/GeoSurvey.Bootstrap` is a separate composition root referencing ControlPlane Infrastructure; `tests/Unit/GeoSurvey.Bootstrap.Tests` verifies terminal/configuration/result behavior. The API has no console reference. See [operator setup and verification](../development/bootstrap-console.md).
+
+Bootstrap password base components, 2026-11-16: Identity Infrastructure now contains `BootstrapPassword` and `IdentityPasswordHashingOptions`, with no new dependencies, API registration, or database changes. [Explanation and unit-test results](../development/bootstrap-password-components.md) document NFC/code-point rules and real framework hashing checks. This is not complete blocklist validation or a bootstrap command.
+
 API composition, 2026-11-16: `GeoSurvey.Api` now references ControlPlane Infrastructure and registers the global context as scoped with startup-validated connection options. No Identity login services or automatic migration are registered. Docker build inputs include the referenced production projects and Compose forwards environment configuration. See [API configuration and verification](../development/api-control-plane-configuration.md). Earlier pending-registration statements below describe the preceding slices.
 
 Migration execution verification, 2026-11-16: `MigrationDatabase` and `MigrationApplicationTests` in the ControlPlane integration-test project apply the migration using `MigrateAsync` to a previously absent disposable database, then verify reapplication, history, actual schema/FKs, and scoped uniqueness. [Results and limits](../development/migration-application-tests.md) distinguish this from the existing `EnsureCreated` fixtures and from production deployment.
@@ -170,3 +174,15 @@ Observed on 2026-11-11:
 - Docker CLI `29.6.2` was available, but `docker info` could not reach the Docker Desktop Linux engine.
 
 These are local observations, not pinned dependency versions or compatibility guarantees. Select and verify framework/package versions in the affected scaffolding task. Resolve the specification's open business decisions only before their affected features; they do not block this documentation task.
+
+MFA challenge lifecycle, 2026-11-17: Identity Infrastructure owns the MFA model/mapping and persistence interface; ControlPlane Infrastructure implements that interface using the composed global context. No API endpoint or DI registration is enabled. See [ADR 0030](../decisions/0030-restricted-mfa-challenges.md).
+
+TOTP protection: Identity Infrastructure contains ITotpSecretProtector and its Data Protection implementation. Host-owned key configuration is not yet wired. See [component notes](../development/totp-secret-protection.md).
+
+API key host: Configuration/DataProtectionRegistration.cs owns certificate loading, dedicated provider lifecycle, settings validation, and startup key checks. See [host key runbook](../development/data-protection-host.md).
+
+Pending MFA enrollment: Identity Infrastructure owns PendingTotpEnrollment, its configuration/contract/service; ControlPlane Infrastructure implements scoped transactional persistence. See [implementation notes](../development/pending-totp-enrollment.md).
+
+TOTP calculation: Identity Infrastructure/Mfa/TotpAuthenticator.cs provides secret generation and stateless matched-step verification; published-vector tests are in Identity unit tests. See [component notes](../development/totp-primitive.md).
+
+MFA controls: Identity Infrastructure owns MfaVerificationState, policy/contract/service; ControlPlane Infrastructure supplies SQL attempt/replay transactions and shared active-block eligibility. See [control notes](../development/mfa-attempt-replay-controls.md).

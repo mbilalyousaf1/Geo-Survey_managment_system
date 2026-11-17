@@ -2,23 +2,30 @@ using GeoSurvey.Identity.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GeoSurvey.ControlPlane.Infrastructure.IntegrationTests;
 
 /// <summary>Starts without a database and applies real migrations, never EnsureCreated.</summary>
-public sealed class MigrationDatabase : IAsyncLifetime
+public class MigrationDatabase : IAsyncLifetime
 {
+    private readonly string? _targetMigration;
     private readonly ServiceProvider _services = new ServiceCollection()
         .Configure<IdentityOptions>(IdentityPersistenceOptions.Configure).BuildServiceProvider();
     private DbContextOptions<GlobalControlPlaneDbContext> _options = null!;
     private bool _cleanupRequired;
 
+    public MigrationDatabase() : this(null) { }
+
+    protected MigrationDatabase(string? targetMigration) => _targetMigration = targetMigration;
+
     public bool StartedWithoutDatabase { get; private set; }
 
     public GlobalControlPlaneDbContext CreateContext() => new(_options);
 
-    public async Task InitializeAsync()
+    public virtual async Task InitializeAsync()
     {
         var connectionString = Environment.GetEnvironmentVariable("GEOSURVEY_TEST_SQLSERVER");
         if (string.IsNullOrWhiteSpace(connectionString))
@@ -60,10 +67,10 @@ public sealed class MigrationDatabase : IAsyncLifetime
         // A failed migration can leave a partially created database; cleanup remains restricted to our new name.
         _cleanupRequired = true;
         await using var context = CreateContext();
-        await context.Database.MigrateAsync();
+        await context.GetService<IMigrator>().MigrateAsync(_targetMigration);
     }
 
-    public async Task DisposeAsync()
+    public virtual async Task DisposeAsync()
     {
         try
         {
@@ -79,3 +86,9 @@ public sealed class MigrationDatabase : IAsyncLifetime
         }
     }
 }
+
+public sealed class InitialMigrationDatabase() : MigrationDatabase("20261116114419_InitialGlobalControlPlane");
+
+public sealed class MfaChallengeMigrationDatabase() : MigrationDatabase("20261117102009_AddMfaChallenges");
+
+public sealed class PendingEnrollmentMigrationDatabase() : MigrationDatabase("20261117112151_AddPendingTotpEnrollments");

@@ -88,3 +88,5 @@ The API's eight tests cover liveness with unreachable SQL Server, same-context r
 Compose validation and the review image build passed. A uniquely named temporary container from `geosurvey-api:registration-check`, with a random loopback HTTP port and an explicit credential-free unreachable SQL connection supplied through the environment, returned HTTP `200 Healthy`; `id -u` returned `1654`. That container was removed afterward. This checks packaging and database-independent liveness, not a real SQL connection. No existing container was restarted.
 
 Hosted CI, frontend, mobile, real local database connectivity, and real user-secrets loading were not executed. No actual developer secret values were read or written. Production configuration/deployment and first-administrator bootstrap remain separate work. Nothing was committed or pushed.
+
+Startup prerequisite added 2026-11-17: the API also requires [persistent Data Protection keys and mounted PFX configuration](data-protection-host.md). Earlier connection-only run instructions require these settings as well. SQL validation still does not connect or migrate; key-ring verification does touch its configured files.

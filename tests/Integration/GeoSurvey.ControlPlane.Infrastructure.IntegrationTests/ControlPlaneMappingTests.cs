@@ -132,12 +132,12 @@ public sealed class ControlPlaneMappingTests(ControlPlaneDatabase database) : IC
     }
 
     [Fact]
-    public async Task ComposedDatabase_ContainsOnlyFiveReviewedTables()
+    public async Task ComposedDatabase_ContainsOnlyNineReviewedTables()
     {
         await using var context = database.CreateContext();
         var tables = await context.Database.SqlQuery<string>(
             $"SELECT [s].[name] + '.' + [t].[name] AS [Value] FROM [sys].[tables] AS [t] INNER JOIN [sys].[schemas] AS [s] ON [s].[schema_id] = [t].[schema_id] WHERE [t].[is_ms_shipped] = 0").ToListAsync();
-        Assert.Equal(new[] { "identity.AccountClaims", "identity.AccountLogins", "identity.AccountTokens", "identity.Accounts", "organization.Organizations" },
+        Assert.Equal(new[] { "controlplane.BootstrapCompletion", "identity.AccountClaims", "identity.AccountLogins", "identity.AccountTokens", "identity.Accounts", "identity.MfaChallenges", "identity.MfaVerificationStates", "identity.PendingTotpEnrollments", "organization.Organizations" },
             tables.Order(StringComparer.Ordinal));
         Assert.Null(context.Model.FindEntityType(typeof(IdentityRole<int>)));
         Assert.Null(context.Model.FindEntityType(typeof(IdentityUserPasskey<int>)));
@@ -158,6 +158,7 @@ public sealed class ControlPlaneMappingTests(ControlPlaneDatabase database) : IC
         using var context = database.CreateContext();
         var historyScript = context.GetService<IHistoryRepository>().GetCreateScript();
         Assert.Contains("[controlplane].[__EFMigrationsHistory]", historyScript, StringComparison.Ordinal);
-        Assert.EndsWith("_InitialGlobalControlPlane", Assert.Single(context.Database.GetMigrations()));
+        Assert.Equal(5, context.Database.GetMigrations().Count());
+        Assert.EndsWith("_AddMfaVerificationStates", context.Database.GetMigrations().Last());
     }
 }

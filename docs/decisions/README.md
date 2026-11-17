@@ -24,7 +24,34 @@ These records capture the context, decision, and consequences of GeoSurvey's arc
 | [0018: Global persistence composition structure](0018-global-persistence-composition.md) | Accepted | Product owner approved project/context names, dependency direction, explicit mapping/FK composition, and migration-history location on 2026-11-13 |
 | [0019: Role-free Identity context base](0019-role-free-identity-context.md) | Accepted | Product owner approved `IdentityUserContext<IdentityAccount, int>`; concrete supporting tables and implementation remain subject to review |
 | [0020: Identity supporting-table mappings](0020-identity-supporting-table-mappings.md) | Accepted | Product owner approved claims/login/token table names, Version 2 schema, 128-character key fields, required account FKs, and NO ACTION deletion on 2026-11-13 |
+| [0021: Platform Administrator claim](0021-platform-administrator-claim.md) | Accepted | Product owner approved the server-managed administrator claim, atomic bootstrap account/claim creation, and scope/MFA authorization requirements on 2026-11-16 |
+| [0022: Bootstrap transaction and application lock](0022-bootstrap-transaction-and-lock.md) | Accepted | Product owner approved a transaction-owned SQL Server bootstrap lock, atomic creation, recheck under lock, and 30-second lock timeout on 2026-11-16 |
+| [0023: Bootstrap base password policy and hashing](0023-bootstrap-base-password-policy.md) | Accepted | Product owner approved NFC/Unicode length and input rules, no composition/expiry rules, and Identity V3 hashing at 220000 iterations; blocklist source remains open |
 
 Record numbers here identify documentation files. They are independent of the master specification's ADR identifiers: record 0002 does not replace master ADR-002, which covers request handling.
 
+Additional accepted record: [0024: Local maintained password corpus](0024-local-password-corpus.md). The owner selected local validation on 2026-11-16; concrete corpus/operations remain proposed.
+
+Source/operations accepted and implemented: [0025: Local password blocklist details](0025-local-password-blocklist-details.md), 2026-11-16. This resolves the additional details left open by 0024.
+
+Operator tool accepted: [0026: Bootstrap console and operator access](0026-bootstrap-console-and-operator-access.md), 2026-11-16. A separate console and dedicated operator credential are approved; concrete permission/implementation details and deletion/recovery behavior remain open.
+
+Permanent completion accepted: [0027: Permanent bootstrap completion](0027-permanent-bootstrap-completion.md), 2026-11-16. A durable marker disables bootstrap after initial success even if the administrator is deleted/locked out; schema/code and recovery remain separate work.
+
 When a decision changes, add a new reviewed record and mark the earlier record as superseded with a link. Preserve the earlier reasoning. Use a Proposed status for choices awaiting approval; use Accepted only for choices already approved. An acceptance date records approval, while a recorded date indicates when the documentation was written.
+
+Service/permissions accepted: [0029: Bootstrap service and permissions](0029-bootstrap-service-and-permissions.md), 2026-11-17. The service and restricted-role test slice are implemented; console and real operator credential provisioning remain pending.
+
+Storage schema accepted and implemented: [0028: Bootstrap-completion schema](0028-bootstrap-completion-schema.md), 2026-11-17; fixed singleton key, UTC timestamp, no account FK/seed/reset method, and a separately tested second migration.
+
+Restricted MFA challenges: [0030](0030-restricted-mfa-challenges.md), accepted 2026-11-17. Ten-minute opaque tokens, hash-only storage, purpose/account/stamp binding, replacement, and one-time consumption.
+
+Account-bound TOTP secret protection: [0031](0031-totp-secret-protection.md), accepted 2026-11-17. Data Protection uses versioned account purposes; durable certificate-protected host key configuration remains pending.
+
+API key host: [0032](0032-api-data-protection-host.md), accepted 2026-11-17. Mounted PFX, explicit external persistent ring, environment-specific application name, startup verification, and safe failures.
+
+Pending authenticator storage: [0033](0033-pending-totp-enrollment-storage.md), accepted 2026-11-17. Ciphertext-only account/challenge-bound pending state, serialized writes, replacement isolation, and no implicit MFA enablement.
+
+TOTP primitive: [0034](0034-totp-primitive.md), accepted 2026-11-17. Random 160-bit Base32 secret, six-digit HMAC-SHA1, 30-second steps, +/- one-step verification, and matched-step reporting. Persistent replay/attempt controls remain pending.
+
+MFA attempt/replay controls: [0035](0035-mfa-attempt-replay-controls.md), accepted 2026-11-17. Five failures within 15 minutes block MFA for 15 minutes across replacement challenges; persistent monotonic step acceptance requires a completion transaction.
