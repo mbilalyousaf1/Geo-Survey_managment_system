@@ -1,0 +1,75 @@
+<div class="page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Organization administrator / Workspace setup</p>
+      <h1>{{ setup()?.organizationName || 'Organization workspace' }}</h1>
+      <p class="muted">The verified foundation for your organization's work.</p>
+    </div>
+    <button class="secondary" type="button" [disabled]="loading()" (click)="load()">
+      {{ loading() ? 'Checking…' : 'Verify workspace' }}
+    </button>
+  </div>
+  @if (error()) {
+    <div class="alert error" role="alert">{{ error() }}</div>
+  }
+  @if (loading()) {
+    <div class="card" role="status">
+      <span class="spinner" aria-hidden="true"></span> Resolving your authorized workspace…
+    </div>
+  }
+  @if (setup(); as data) {
+    <div class="alert success" role="status">
+      Workspace verified. Your organization identity and administrator access were checked against
+      this workspace.
+    </div>
+    <div class="grid-wide">
+      <section class="card" aria-labelledby="workspace-title">
+        <div class="page-heading">
+          <h2 id="workspace-title">Workspace identity</h2>
+          <span class="status ready">{{ data.state }}</span>
+        </div>
+        <dl class="key-value">
+          <div>
+            <dt>Organization</dt>
+            <dd>{{ data.organizationName }}</dd>
+          </div>
+          <div>
+            <dt>Organization code</dt>
+            <dd class="mono">{{ data.organizationCode }}</dd>
+          </div>
+          <div>
+            <dt>Region profile</dt>
+            <dd>{{ data.regionKey }}</dd>
+          </div>
+          <div>
+            <dt>Schema version</dt>
+            <dd>{{ data.schemaVersion }}</dd>
+          </div>
+          <div>
+            <dt>Organization reference</dt>
+            <dd class="mono">{{ data.organizationPublicId }}</dd>
+          </div>
+        </dl>
+      </section>
+      <div class="stack">
+        <section class="card" aria-labelledby="access-title">
+          <p class="eyebrow">Access confirmed</p>
+          <h2 id="access-title">Organization administrator</h2>
+          <p>{{ auth.session()?.email }}</p>
+          <p class="muted">
+            Your account has an active administrator grant in this organization's workspace.
+          </p>
+        </section>
+        <section class="card" aria-labelledby="scope-title">
+          <p class="eyebrow">Phase 1 delivery</p>
+          <h2 id="scope-title">A ready foundation</h2>
+          <p class="muted">
+            Identity, isolated organization provisioning, and administrator onboarding are
+            available. Survey, map, project, and user-management workflows are planned for later
+            phases.
+          </p>
+        </section>
+      </div>
+    </div>
+  }
+</div>

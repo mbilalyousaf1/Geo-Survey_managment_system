@@ -26,7 +26,7 @@ public sealed class ControlPlaneRegistrationTests : IClassFixture<ConfiguredApiF
         var second = secondScope.ServiceProvider.GetRequiredService<GlobalControlPlaneDbContext>();
         Assert.NotSame(first, second);
         Assert.Equal("Microsoft.EntityFrameworkCore.SqlServer", first.Database.ProviderName);
-        Assert.Equal(9, first.Model.GetEntityTypes().Count());
+        Assert.Equal(17, first.Model.GetEntityTypes().Count());
         Assert.Equal(ConnectionState.Closed, first.Database.GetDbConnection().State);
         Assert.Equal(ConnectionState.Closed, second.Database.GetDbConnection().State);
         Assert.Contains("[controlplane].[__EFMigrationsHistory]", first.GetService<IHistoryRepository>().GetCreateScript());

@@ -92,3 +92,7 @@ public sealed class InitialMigrationDatabase() : MigrationDatabase("202611161144
 public sealed class MfaChallengeMigrationDatabase() : MigrationDatabase("20261117102009_AddMfaChallenges");
 
 public sealed class PendingEnrollmentMigrationDatabase() : MigrationDatabase("20261117112151_AddPendingTotpEnrollments");
+
+public sealed class MfaVerificationMigrationDatabase() : MigrationDatabase("20261117115011_AddMfaVerificationStates");
+
+public sealed class ConfirmedMfaMigrationDatabase() : MigrationDatabase("20261117174212_AddConfirmedMfaEnrollment");

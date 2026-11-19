@@ -1,1 +1,473 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  color-scheme: light;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #172f3b;
+  background: #f2f6f5;
+  font-synthesis: none;
+  --ink: #172f3b;
+  --muted: #536b74;
+  --brand: #0b6658;
+  --line: #d8e3df;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+a {
+  color: #075e52;
+  text-underline-offset: 3px;
+}
+a:hover {
+  color: #0a4038;
+}
+button,
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  padding: 0.75rem 1.1rem;
+  background: var(--brand);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  line-height: 1.4;
+}
+button:hover,
+.button:hover {
+  background: #094e44;
+  color: white;
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+button.secondary,
+.button.secondary {
+  background: white;
+  border-color: #bbcec6;
+  color: #174a40;
+}
+button.secondary:hover,
+.button.secondary:hover {
+  background: #ecf5f0;
+}
+button.text-button {
+  background: none;
+  color: var(--brand);
+  padding-inline: 0.15rem;
+}
+button.text-button:hover {
+  text-decoration: underline;
+}
+:focus-visible {
+  outline: 3px solid #d29123;
+  outline-offset: 3px;
+}
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+h1 {
+  font-size: clamp(1.9rem, 4vw, 2.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+  margin-bottom: 0.9rem;
+}
+h2 {
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+}
+h3 {
+  font-size: 1rem;
+}
+p {
+  line-height: 1.65;
+}
+.muted {
+  color: var(--muted);
+}
+.eyebrow {
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  font-weight: 700;
+  color: #397264;
+  margin-bottom: 0.85rem;
+}
+.page {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 2.6rem 1.5rem 4rem;
+}
+.page-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.7rem;
+}
+.page-heading p {
+  margin-bottom: 0;
+  max-width: 42rem;
+}
+.card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 0.95rem;
+  padding: 1.75rem;
+  box-shadow: 0 5px 18px #183e2910;
+}
+.auth-layout {
+  max-width: 1050px;
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+.auth-intro {
+  padding: 2rem 0;
+}
+.auth-intro p {
+  color: var(--muted);
+}
+.auth-intro .step {
+  display: flex;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+.step-number {
+  background: #e0ede6;
+  color: #245f4e;
+  border-radius: 50%;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  display: grid;
+  place-items: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.step strong {
+  display: block;
+  margin-bottom: 0.3rem;
+}
+.step p {
+  font-size: 0.92rem;
+  margin: 0;
+}
+.auth-card h2 {
+  margin-bottom: 0.5rem;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 1.15rem;
+}
+label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  background: #fbfdfc;
+  color: var(--ink);
+  border: 1px solid #b8cbc3;
+  border-radius: 0.5rem;
+  min-height: 2.9rem;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--brand);
+}
+textarea {
+  resize: vertical;
+}
+.help {
+  color: var(--muted);
+  font-size: 0.83rem;
+  line-height: 1.5;
+}
+.full-width {
+  width: 100%;
+}
+.form-footer {
+  margin: 1.4rem 0 0;
+  font-size: 0.9rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--line);
+}
+.alert {
+  padding: 0.9rem 1rem;
+  border: 1px solid;
+  border-radius: 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin-bottom: 1.2rem;
+  overflow-wrap: anywhere;
+}
+.alert.error {
+  background: #fff3f1;
+  border-color: #edc6bf;
+  color: #8b2f21;
+}
+.alert.info {
+  background: #edf6f9;
+  border-color: #c5dfe8;
+  color: #235b6d;
+}
+.alert.success {
+  background: #edf8f0;
+  border-color: #b8dbbf;
+  color: #235e33;
+}
+.alert.warning {
+  background: #fff9e9;
+  border-color: #ead49e;
+  color: #775717;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.4rem;
+}
+.grid-wide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: start;
+}
+.stack {
+  display: grid;
+  gap: 1.4rem;
+}
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem 0.65rem;
+  border-radius: 2rem;
+  background: #eaf0ed;
+  color: #476454;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.status::before {
+  content: '';
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 100%;
+  background: currentColor;
+}
+.status.ready {
+  background: #e1f2e6;
+  color: #24683b;
+}
+.status.failed,
+.status.suspended {
+  background: #fbe8e4;
+  color: #963d2c;
+}
+.status.pending,
+.status.provisioning,
+.status.awaitingadministrator {
+  background: #fff2d8;
+  color: #886517;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+th {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: #f7faf8;
+}
+th,
+td {
+  padding: 1rem 0.9rem;
+  border-bottom: 1px solid #e5ece8;
+}
+td {
+  font-size: 0.91rem;
+}
+td:first-child {
+  padding-left: 0.25rem;
+}
+tbody tr:last-child td {
+  border-bottom: none;
+}
+td small {
+  display: block;
+  color: var(--muted);
+  margin-top: 0.3rem;
+}
+.empty {
+  padding: 2.4rem 1rem;
+  text-align: center;
+  color: var(--muted);
+}
+.key-value {
+  margin: 0;
+}
+.key-value > div {
+  display: grid;
+  grid-template-columns: minmax(100px, 40%) minmax(0, 1fr);
+  gap: 1rem;
+  border-bottom: 1px solid #e5ece8;
+  padding: 0.9rem 0;
+}
+.key-value > div:last-child {
+  border-bottom: 0;
+}
+dt {
+  color: var(--muted);
+  font-size: 0.87rem;
+}
+dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.93rem;
+}
+.mono {
+  font-family: Consolas, 'Courier New', monospace;
+  overflow-wrap: anywhere;
+}
+.secret {
+  background: #f0f5f2;
+  border: 1px dashed #adbfaf;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  user-select: all;
+  letter-spacing: 0.06em;
+}
+.recovery-codes {
+  columns: 2;
+  list-style: none;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: #f1f6f3;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+}
+.recovery-codes li {
+  padding: 0.4rem 0;
+  font:
+    0.8rem Consolas,
+    monospace;
+  overflow-wrap: anywhere;
+  break-inside: avoid;
+}
+.checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+}
+.checkbox input {
+  width: 1rem;
+  height: 1rem;
+  min-height: 1rem;
+  margin-top: 0.2rem;
+}
+.spinner {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+  }
+}
+@media (max-width: 780px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+    gap: 1.3rem;
+    padding-top: 1.2rem;
+    max-width: 580px;
+  }
+  .auth-intro {
+    padding: 0.7rem 0;
+  }
+  .auth-intro .step {
+    display: none;
+  }
+  .grid,
+  .grid-wide {
+    grid-template-columns: 1fr;
+  }
+  .page {
+    padding: 1.7rem 1rem 3rem;
+  }
+  .card {
+    padding: 1.3rem;
+  }
+  .page-heading {
+    flex-direction: column;
+  }
+  .recovery-codes {
+    columns: 1;
+  }
+}

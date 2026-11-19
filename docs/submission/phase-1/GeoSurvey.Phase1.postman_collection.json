@@ -1,0 +1,908 @@
+{
+  "info": {
+    "name": "GeoSurvey Phase 1 local demonstration",
+    "description": "Manual, parameterized requests for the approved Phase 1 integration contract. Set the EMPTY placeholders privately in a local Postman environment; this export contains no credentials, access/refresh tokens, invitation material, or saved responses. Do not export a populated environment or save secret-bearing responses. There are no token-capture or logging scripts. Run GET CSRF first and retain its cookies in the same HTTPS host cookie jar. Use the local certificate trust steps in the submission runbook. Bootstrap is an authorized masked operator command and has no HTTP request here. This collection is a reviewable API artifact, not evidence that requests were executed. Fresh enrollment needs confirmation, private recovery-code storage, then fresh password entry before verification. Each consumed challenge/recovery code/invitation must be replaced for another attempt. A strict refresh token may be used only once; the cookie jar receives rotations automatically.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "",
+      "type": "string",
+      "description": "The exact local HTTPS origin printed by Start-Phase1Demo.ps1, without a trailing slash (default port 5443)."
+    },
+    {
+      "key": "csrfToken",
+      "value": "",
+      "type": "string",
+      "description": "data.requestToken from GET /api/v1/auth/csrf, using the same cookie jar."
+    },
+    {
+      "key": "platformEmail",
+      "value": "",
+      "type": "string",
+      "description": "Email of the operator-bootstrapped Platform Administrator."
+    },
+    {
+      "key": "platformPassword",
+      "value": "",
+      "type": "string",
+      "description": "Private Platform Administrator password; keep local and do not export."
+    },
+    {
+      "key": "challengeToken",
+      "value": "",
+      "type": "string",
+      "description": "Latest restricted Enrollment or Verification challenge for the matching flow."
+    },
+    {
+      "key": "totpCode",
+      "value": "",
+      "type": "string",
+      "description": "Current six-digit code from the enrolled authenticator; accepted steps cannot be replayed."
+    },
+    {
+      "key": "recoveryCode",
+      "value": "",
+      "type": "string",
+      "description": "One unused issued recovery code; this request consumes it."
+    },
+    {
+      "key": "platformAccessToken",
+      "value": "",
+      "type": "string",
+      "description": "Current short-lived Platform bearer token from a successful verification/recovery/refresh."
+    },
+    {
+      "key": "platformSessionPublicId",
+      "value": "",
+      "type": "string",
+      "description": "Current Platform session public GUID, used only for an optional consistency check."
+    },
+    {
+      "key": "organizationPublicId",
+      "value": "",
+      "type": "string",
+      "description": "Organization public GUID returned by creation/list/detail; never an internal integer key."
+    },
+    {
+      "key": "organizationCode",
+      "value": "",
+      "type": "string",
+      "description": "Platform-chosen organization login code; normalized to lowercase, 3-50 letters/digits/hyphens."
+    },
+    {
+      "key": "organizationDisplayName",
+      "value": "",
+      "type": "string",
+      "description": "Organization display name, 1-200 characters after trimming."
+    },
+    {
+      "key": "regionKey",
+      "value": "",
+      "type": "string",
+      "description": "One key returned by GET /platform/regions; the approved local profile is local-demo."
+    },
+    {
+      "key": "administratorEmail",
+      "value": "",
+      "type": "string",
+      "description": "Email for the independent initial Organization Administrator account."
+    },
+    {
+      "key": "invitationToken",
+      "value": "",
+      "type": "string",
+      "description": "One-time 24-hour token returned by administrator-invitation; keep private."
+    },
+    {
+      "key": "organizationPassword",
+      "value": "",
+      "type": "string",
+      "description": "Recipient-chosen organization password, NFC 15-128 code points and local-blocklist compliant."
+    },
+    {
+      "key": "organizationAccessToken",
+      "value": "",
+      "type": "string",
+      "description": "Current short-lived Organization bearer token for this account and organization."
+    },
+    {
+      "key": "organizationSessionPublicId",
+      "value": "",
+      "type": "string",
+      "description": "Current Organization session public GUID, used only for an optional consistency check."
+    }
+  ],
+  "item": [
+    {
+      "name": "Service and documentation",
+      "description": "Read-only discovery. Liveness does not establish tenant readiness.",
+      "item": [
+        {
+          "name": "Liveness",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/health/live",
+            "description": "Checks process liveness; no credentials required."
+          },
+          "response": []
+        },
+        {
+          "name": "OpenAPI document",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/openapi/v1.json",
+            "description": "Actual generated API metadata. No saved response is included in this collection."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Platform authentication",
+      "description": "Use the operator-bootstrapped account. All unsafe requests require the CSRF cookie and matching request header. Enrollment material and recovery codes are sensitive and must not be saved into examples or shared environments.",
+      "item": [
+        {
+          "name": "Get CSRF proof and cookie",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/csrf",
+            "description": "Copy data.requestToken privately to csrfToken. Retain the host-only antiforgery cookie in this cookie jar."
+          },
+          "response": []
+        },
+        {
+          "name": "Begin platform password entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/platform/password",
+            "description": "Returns only a restricted challenge and step Enrollment or Verification. Copy the current data.challengeToken privately; this proof is not a bearer token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{platformEmail}}\",\n  \"password\": \"{{platformPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get server-generated enrollment material",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/platform/enrollment",
+            "description": "Enrollment challenge only. Configure a TOTP authenticator from the returned secret/provisioningUri. Do not log or save the response.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirm actual authenticator enrollment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/platform/enrollment/confirm",
+            "description": "Confirms enrollment and shows ten recovery codes once. Save them privately. Begin password entry afresh to obtain a Verification challenge before sign-in; a consumed TOTP step cannot be reused.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"code\": \"{{totpCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign in with password-verified TOTP challenge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/platform/verify",
+            "description": "Use a fresh Verification challenge and unused authenticator step. Copy data.accessToken privately to platformAccessToken and data.sessionPublicId to platformSessionPublicId. The secure HttpOnly Platform refresh cookie is managed by the cookie jar.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"code\": \"{{totpCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sign in with password-verified unused recovery code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/platform/recovery",
+            "description": "Alternative to TOTP after fresh password verification. Consumes one unused issued code atomically with the session; does not reset TOTP or regenerate recovery codes. Update private session variables from the response.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"recoveryCode\": \"{{recoveryCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Read current platform profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{platformAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/auth/me",
+            "description": "Requires a valid current server-bound Platform session; the profile has null organization fields."
+          },
+          "response": []
+        },
+        {
+          "name": "Rotate platform refresh cookie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/platform/refresh",
+            "description": "Uses the Platform refresh cookie, rotates it once, and returns a new access token. Update platformAccessToken. Do not replay the previous cookie: reuse revokes that family.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Rotate platform refresh with session consistency check",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/platform/refresh",
+            "description": "Optional consistency variant. Expected public ID is checked against the cookie's server-resolved family and never establishes authorization. Mismatch returns 409 without adopting a different browser session. Do not run this using an already consumed cookie.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expectedSessionPublicId\": \"{{platformSessionPublicId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Log out platform session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/platform/logout",
+            "description": "Revokes the current Platform refresh family and clears its cookie; returns 204. Previously issued access immediately fails current-session validation."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Platform organization management",
+      "description": "Every request uses the PlatformAdministrator bearer policy. The initial account has no usable password before activation. Public DTOs expose no database name, connection string, secret, or internal integer identifier.",
+      "item": [
+        {
+          "name": "List allowed server-managed regions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{platformAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/platform/regions",
+            "description": "Set regionKey from data[].key. Only the approved local-demo profile is configured for this delivery."
+          },
+          "response": []
+        },
+        {
+          "name": "List organizations with pagination",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{platformAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/platform/organizations?pageNumber=1&pageSize=25",
+            "description": "Returns data.items, totalCount, pageNumber, pageSize. Page size is capped at 100."
+          },
+          "response": []
+        },
+        {
+          "name": "Create organization and durable provisioning request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{platformAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/platform/organizations",
+            "description": "Returns 201 with the Pending organization. Copy data.publicId privately to organizationPublicId. Code is normalized to lowercase; no leading/trailing/consecutive hyphens or underscores. Database names and authorization targets are always server-generated.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{organizationCode}}\",\n  \"displayName\": \"{{organizationDisplayName}}\",\n  \"regionKey\": \"{{regionKey}}\",\n  \"administratorEmail\": \"{{administratorEmail}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Read actual provisioning status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{platformAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/platform/organizations/{{organizationPublicId}}",
+            "description": "Poll Pending/Provisioning until AwaitingAdministrator or a safe Failed state. Ready follows successful administrator activation; the HTTP response does not fake completion."
+          },
+          "response": []
+        },
+        {
+          "name": "Retry a failed organization's provisioning",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{platformAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/platform/organizations/{{organizationPublicId}}/retry",
+            "description": "Failed state only. Durably requests retry with a bounded attempt budget; existing failed databases are preserved."
+          },
+          "response": []
+        },
+        {
+          "name": "Issue or replace initial administrator invitation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{platformAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/platform/organizations/{{organizationPublicId}}/administrator-invitation",
+            "description": "AwaitingAdministrator only. Returns the raw random 24-hour invitation token once for manual secure handoff. Copy privately to invitationToken; reissue revokes any unused previous link. The UI constructs /activate#TOKEN on its own origin. Never place the token in an HTTP query string or save this response."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Recipient activation",
+      "description": "Anonymous proof-based operations use CSRF validation and rate limiting. The recipient sets their own password. An already active account is never overwritten.",
+      "item": [
+        {
+          "name": "Inspect invitation without activating",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/activation/inspect",
+            "description": "Requires a valid, unexpired, unused invitation plus the CSRF cookie/header from the same HTTPS cookie jar. Returns only organization code/name, intended email, and expiry.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{invitationToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Complete initial administrator activation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/activation/complete",
+            "description": "Commits the tenant administrator grant before enabling the global password/consuming the invitation/marking Ready. Password follows NFC 15-128 Unicode code points and the local blocklist. Returns organizationCode and administratorEmail; sign in separately afterward. The token is single use.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{invitationToken}}\",\n  \"password\": \"{{organizationPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Organization authentication and verified workspace",
+      "description": "Use this organization's independent code/email/password. Platform credentials and matching emails in other organizations confer no tenant access.",
+      "item": [
+        {
+          "name": "Sign in organization administrator",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/organization/password",
+            "description": "Requires Ready, current organization-scoped credentials, the correct database identity, and the tenant-owned administrator grant. Copy data.accessToken to organizationAccessToken and data.sessionPublicId to organizationSessionPublicId privately. The secure Organization refresh cookie stays in the cookie jar.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"organizationCode\": \"{{organizationCode}}\",\n  \"email\": \"{{administratorEmail}}\",\n  \"password\": \"{{organizationPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Read current organization profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{organizationAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/auth/me",
+            "description": "The returned public organization identity is bound to the authenticated global account and current registry."
+          },
+          "response": []
+        },
+        {
+          "name": "Read actual tenant setup",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{organizationAccessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/v1/tenant/setup",
+            "description": "Returns the actual organization public identity, region, Ready state, schema version, and marker/grant verification outcomes. No client tenant selector or database target is accepted."
+          },
+          "response": []
+        },
+        {
+          "name": "Rotate organization refresh cookie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/organization/refresh",
+            "description": "Uses only this host's Organization refresh cookie. Strictly rotates once, rechecks current tenant access, and returns a new access token. Update organizationAccessToken; do not replay old cookies.",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Rotate organization refresh with session consistency check",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/organization/refresh",
+            "description": "Optional consistency variant. Mismatch returns 409 without switching to a replacement browser session. The expected public ID is never a database selector or authorization grant.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expectedSessionPublicId\": \"{{organizationSessionPublicId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Log out organization session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json, application/problem+json"
+              },
+              {
+                "key": "X-CSRF-TOKEN",
+                "value": "{{csrfToken}}"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{baseUrl}}/api/v1/auth/organization/logout",
+            "description": "Revokes the current Organization family and clears its cookie; returns 204. Current-family checks invalidate access immediately."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

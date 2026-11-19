@@ -1,0 +1,87 @@
+name: ${DEMO_PROJECT:?Generate external demo configuration first}
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${DEMO_SA_PASSWORD:?}
+    ports:
+      - "127.0.0.1:${DEMO_SQL_PORT:?}:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+  api:
+    user: "${DEMO_UID:-1654}"
+    build:
+      context: .
+      dockerfile: deploy/docker/GeoSurvey.Api.Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: https://+:8443
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /run/geosurvey/https.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${DEMO_HTTPS_PASSWORD:?}
+      ConnectionStrings__GlobalControlPlane: ${DEMO_API_CONNECTION:?}
+      DataProtection__ApplicationName: GeoSurvey.LocalDemo
+      DataProtection__KeyRingPath: /var/lib/geosurvey/ring
+      DataProtection__CertificatePath: /run/geosurvey/protection.pfx
+      DataProtection__CertificatePassword: ${DEMO_PROTECTION_PASSWORD:?}
+      Authentication__Issuer: ${DEMO_ISSUER:?}
+      Authentication__Audience: geosurvey-api
+      Authentication__SigningCertificatePath: /run/geosurvey/signing.pfx
+      Authentication__SigningCertificatePassword: ${DEMO_SIGNING_PASSWORD:?}
+      Tenancy__LocalDemo__RegionKey: local-demo
+      Tenancy__LocalDemo__RegionDisplayName: Local demonstration
+      Tenancy__LocalDemo__RuntimeConnectionString: ${DEMO_TENANT_CONNECTION:?}
+      Tenancy__LocalDemo__RuntimeLogin: GeoSurveyRuntime
+    volumes:
+      - type: bind
+        source: ${DEMO_ROOT:?}/https.pfx
+        target: /run/geosurvey/https.pfx
+        read_only: true
+      - type: bind
+        source: ${DEMO_ROOT:?}/protection.pfx
+        target: /run/geosurvey/protection.pfx
+        read_only: true
+      - type: bind
+        source: ${DEMO_ROOT:?}/signing.pfx
+        target: /run/geosurvey/signing.pfx
+        read_only: true
+      - type: bind
+        source: ${DEMO_ROOT:?}/ring
+        target: /var/lib/geosurvey/ring
+    security_opt: [no-new-privileges:true]
+    depends_on: [sql]
+  worker:
+    build:
+      context: .
+      dockerfile: deploy/docker/GeoSurvey.Worker.Dockerfile
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      ConnectionStrings__GlobalControlPlane: ${DEMO_WORKER_CONNECTION:?}
+      ConnectionStrings__ProvisioningJobs: ${DEMO_JOBS_CONNECTION:?}
+      Tenancy__LocalDemo__RegionKey: local-demo
+      Tenancy__LocalDemo__RegionDisplayName: Local demonstration
+      Tenancy__LocalDemo__RuntimeConnectionString: ${DEMO_TENANT_CONNECTION:?}
+      Tenancy__LocalDemo__RuntimeLogin: GeoSurveyRuntime
+      Tenancy__LocalDemo__ManagementConnectionString: ${DEMO_MANAGEMENT_CONNECTION:?}
+    security_opt: [no-new-privileges:true]
+    depends_on: [sql]
+  web:
+    build:
+      context: .
+      dockerfile: deploy/docker/GeoSurvey.Web.Dockerfile
+    ports:
+      - "127.0.0.1:${DEMO_HTTPS_PORT:?}:8443"
+    volumes:
+      - type: bind
+        source: ${DEMO_ROOT:?}/https.crt
+        target: /run/geosurvey/https.crt
+        read_only: true
+      - type: bind
+        source: ${DEMO_ROOT:?}/https.key
+        target: /run/geosurvey/https.key
+        read_only: true
+    security_opt: [no-new-privileges:true]
+    depends_on: [api]
+volumes:
+  sql-data:

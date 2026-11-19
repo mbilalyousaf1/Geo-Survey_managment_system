@@ -1,4 +1,6 @@
 using GeoSurvey.Api.Configuration;
+using GeoSurvey.Api.Authentication;
+using GeoSurvey.Api.Organizations;
 using Serilog;
 using Serilog.Formatting.Compact;
 
@@ -13,11 +15,19 @@ builder.Services.AddSerilog((services, loggerConfiguration) => loggerConfigurati
 builder.Services.AddHealthChecks();
 builder.Services.AddGlobalControlPlanePersistence(builder.Configuration);
 builder.Services.AddGeoSurveyDataProtection(builder.Configuration, builder.Environment);
+builder.Services.AddGeoSurveyAuthentication(builder.Configuration, builder.Environment);
+builder.Services.AddPhaseOneOrganizations(builder.Configuration);
 
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
+app.UseMiddleware<SafeProblemMiddleware>();
+app.UseRouting();
+app.UseGeoSurveyAuthentication();
 app.MapHealthChecks("/health/live");
+app.MapGeoSurveyAuthentication();
+app.MapPhaseOneOrganizations();
+app.MapOpenApi();
 
 app.Run();
 

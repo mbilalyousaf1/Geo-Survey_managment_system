@@ -39,6 +39,215 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("GeoSurvey.ControlPlane.Infrastructure.Tenancy.AdministratorInvitation", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("ConsumedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("RevokedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<byte[]>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("binary(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId")
+                        .IsUnique()
+                        .HasFilter("[ConsumedAtUtc] IS NULL AND [RevokedAtUtc] IS NULL");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("AdministratorInvitations", "tenancy", t =>
+                        {
+                            t.HasCheckConstraint("CK_AdministratorInvitations_Expiry", "[ExpiresAtUtc] > [CreatedAtUtc]");
+
+                            t.HasCheckConstraint("CK_AdministratorInvitations_Outcome", "[ConsumedAtUtc] IS NULL OR [RevokedAtUtc] IS NULL");
+                        });
+                });
+
+            modelBuilder.Entity("GeoSurvey.ControlPlane.Infrastructure.Tenancy.ProvisioningOutboxMessage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset?>("DispatchedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("JobId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("OrganizationPublicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DispatchedAtUtc");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.ToTable("ProvisioningOutbox", "tenancy");
+                });
+
+            modelBuilder.Entity("GeoSurvey.ControlPlane.Infrastructure.Tenancy.TenantLifecycleAudit", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<Guid?>("ActorPublicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTimeOffset>("OccurredAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<Guid>("OrganizationPublicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationPublicId", "OccurredAtUtc");
+
+                    b.ToTable("TenantLifecycleAudit", "audit");
+                });
+
+            modelBuilder.Entity("GeoSurvey.ControlPlane.Infrastructure.Tenancy.TenantRegistryEntry", b =>
+                {
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset?>("DatabaseHealthyAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("DatabaseName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("FailureCode")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<int>("InitialAdministratorAccountId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProvisioningAttempts")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RegionKey")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("int");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTimeOffset>("UpdatedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.HasKey("OrganizationId");
+
+                    b.HasIndex("DatabaseName")
+                        .IsUnique();
+
+                    b.HasIndex("InitialAdministratorAccountId");
+
+                    b.ToTable("TenantRegistry", "tenancy", t =>
+                        {
+                            t.HasCheckConstraint("CK_TenantRegistry_Attempts", "[ProvisioningAttempts] >= 0");
+
+                            t.HasCheckConstraint("CK_TenantRegistry_Ready", "[State] NOT IN (N'Ready',N'AwaitingAdministrator') OR ([SchemaVersion] = 1 AND [DatabaseHealthyAtUtc] IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_TenantRegistry_State", "[State] IN (N'Pending',N'Provisioning',N'AwaitingAdministrator',N'Ready',N'Failed',N'Suspended')");
+                        });
+                });
+
             modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.IdentityAccount", b =>
                 {
                     b.Property<int>("Id")
@@ -136,6 +345,24 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.ConfirmedTotpCredential", b =>
+                {
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("ConfirmedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("ProtectedSecret")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AccountId");
+
+                    b.ToTable("TotpCredentials", "identity");
+                });
+
             modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.MfaChallenge", b =>
                 {
                     b.Property<int>("Id")
@@ -190,6 +417,32 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_MfaChallenges_Expiry", "[ExpiresAtUtc] > [CreatedAtUtc]");
 
                             t.HasCheckConstraint("CK_MfaChallenges_Purpose", "[Purpose] IN (1, 2)");
+                        });
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.MfaRecoveryCode", b =>
+                {
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CodeHash")
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.Property<DateTimeOffset?>("ConsumedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.HasKey("AccountId", "CodeHash");
+
+                    b.ToTable("MfaRecoveryCodes", "identity", t =>
+                        {
+                            t.HasCheckConstraint("CK_MfaRecoveryCodes_ConsumedAt", "[ConsumedAtUtc] IS NULL OR [ConsumedAtUtc] >= [CreatedAtUtc]");
                         });
                 });
 
@@ -250,6 +503,107 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
                     b.HasIndex("ChallengeId", "AccountId");
 
                     b.ToTable("PendingTotpEnrollments", "identity");
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Sessions.RefreshToken", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset?>("ConsumedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<long>("TokenFamilyId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .IsUnicode(false)
+                        .HasColumnType("char(64)")
+                        .UseCollation("Latin1_General_100_BIN2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenFamilyId")
+                        .IsUnique()
+                        .HasFilter("[ConsumedAtUtc] IS NULL");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("RefreshTokens", "identity", t =>
+                        {
+                            t.HasCheckConstraint("CK_RefreshTokens_ConsumedAt", "[ConsumedAtUtc] IS NULL OR [ConsumedAtUtc] >= [CreatedAtUtc]");
+
+                            t.HasCheckConstraint("CK_RefreshTokens_Expiry", "[ExpiresAtUtc] > [CreatedAtUtc]");
+
+                            t.HasCheckConstraint("CK_RefreshTokens_TokenHash", "LEN([TokenHash]) = 64 AND [TokenHash] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^0-9A-F]%'");
+
+                            t.HasCheckConstraint("CK_RefreshTokens_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET, [ExpiresAtUtc]) = 0 AND ([ConsumedAtUtc] IS NULL OR DATEPART(TZOFFSET, [ConsumedAtUtc]) = 0)");
+                        });
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Sessions.TokenFamily", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<DateTimeOffset>("ExpiresAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("RevokedAtUtc")
+                        .HasPrecision(7)
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.ToTable("TokenFamilies", "identity", t =>
+                        {
+                            t.HasCheckConstraint("CK_TokenFamilies_Expiry", "[ExpiresAtUtc] > [CreatedAtUtc]");
+
+                            t.HasCheckConstraint("CK_TokenFamilies_PublicId", "[PublicId] <> '00000000-0000-0000-0000-000000000000'");
+
+                            t.HasCheckConstraint("CK_TokenFamilies_RevokedAt", "[RevokedAtUtc] IS NULL OR [RevokedAtUtc] >= [CreatedAtUtc]");
+
+                            t.HasCheckConstraint("CK_TokenFamilies_SecurityStamp", "LEN([SecurityStamp]) > 0");
+
+                            t.HasCheckConstraint("CK_TokenFamilies_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET, [ExpiresAtUtc]) = 0 AND ([RevokedAtUtc] IS NULL OR DATEPART(TZOFFSET, [RevokedAtUtc]) = 0)");
+                        });
                 });
 
             modelBuilder.Entity("GeoSurvey.Organizations.Domain.Organization", b =>
@@ -357,6 +711,45 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
                     b.ToTable("AccountTokens", "identity");
                 });
 
+            modelBuilder.Entity("GeoSurvey.ControlPlane.Infrastructure.Tenancy.AdministratorInvitation", b =>
+                {
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.IdentityAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("GeoSurvey.Organizations.Domain.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GeoSurvey.ControlPlane.Infrastructure.Tenancy.ProvisioningOutboxMessage", b =>
+                {
+                    b.HasOne("GeoSurvey.Organizations.Domain.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GeoSurvey.ControlPlane.Infrastructure.Tenancy.TenantRegistryEntry", b =>
+                {
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.IdentityAccount", null)
+                        .WithMany()
+                        .HasForeignKey("InitialAdministratorAccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("GeoSurvey.Organizations.Domain.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.IdentityAccount", b =>
                 {
                     b.HasOne("GeoSurvey.Organizations.Domain.Organization", null)
@@ -365,7 +758,25 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.ConfirmedTotpCredential", b =>
+                {
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.IdentityAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.MfaChallenge", b =>
+                {
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.IdentityAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Mfa.MfaRecoveryCode", b =>
                 {
                     b.HasOne("GeoSurvey.Identity.Infrastructure.IdentityAccount", null)
                         .WithMany()
@@ -395,6 +806,24 @@ namespace GeoSurvey.ControlPlane.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("ChallengeId", "AccountId")
                         .HasPrincipalKey("Id", "AccountId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Sessions.RefreshToken", b =>
+                {
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.Sessions.TokenFamily", null)
+                        .WithMany()
+                        .HasForeignKey("TokenFamilyId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GeoSurvey.Identity.Infrastructure.Sessions.TokenFamily", b =>
+                {
+                    b.HasOne("GeoSurvey.Identity.Infrastructure.IdentityAccount", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });

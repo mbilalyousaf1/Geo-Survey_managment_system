@@ -100,7 +100,7 @@ public sealed class EfMfaVerificationStore : IMfaVerificationStore
     private Task<MfaVerificationState?> ReadStateAsync(int accountId, CancellationToken cancellationToken) =>
         _context.Set<MfaVerificationState>().AsNoTracking().SingleOrDefaultAsync(row => row.AccountId == accountId, cancellationToken);
 
-    private async Task LockAsync(Guid accountPublicId, string tokenHash, CancellationToken cancellationToken)
+    internal async Task LockAsync(Guid accountPublicId, string tokenHash, CancellationToken cancellationToken)
     {
         await _context.Database.ExecuteSqlInterpolatedAsync(
             $"SELECT [SecurityStamp] FROM [identity].[Accounts] WITH (UPDLOCK, HOLDLOCK) WHERE [PublicId] = {accountPublicId}", cancellationToken);

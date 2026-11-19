@@ -1,0 +1,117 @@
+<div class="auth-layout">
+  <section class="auth-intro" aria-labelledby="sign-in-title">
+    <p class="eyebrow">
+      {{ platform ? 'Platform administration' : 'Your organization workspace' }}
+    </p>
+    <h1 id="sign-in-title">
+      {{ platform ? 'Build a trusted foundation.' : 'A secure start for your organization.' }}
+    </h1>
+    <p>
+      {{
+        platform
+          ? 'Create organizations, follow provisioning, and securely hand access to each initial administrator.'
+          : 'Sign in with the organization code and account provided through your administrator invitation.'
+      }}
+    </p>
+    <div class="step">
+      <span class="step-number">01</span>
+      <div>
+        <strong>{{ platform ? 'Verify your identity' : 'Use your organization account' }}</strong>
+        <p>
+          {{
+            platform
+              ? 'Platform access requires your password and authenticator.'
+              : 'Your account belongs to one organization.'
+          }}
+        </p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-number">02</span>
+      <div>
+        <strong>{{ platform ? 'Onboard with confidence' : 'Confirm your workspace' }}</strong>
+        <p>
+          {{
+            platform
+              ? 'Each organization receives its own isolated workspace.'
+              : 'View the verified setup for your organization.'
+          }}
+        </p>
+      </div>
+    </div>
+  </section>
+  <section class="card auth-card" aria-labelledby="form-title">
+    <p class="eyebrow">{{ platform ? 'Platform administrator' : 'Organization administrator' }}</p>
+    <h2 id="form-title">Sign in</h2>
+    <p class="muted">
+      {{ platform ? 'Continue to identity verification.' : 'Enter your organization credentials.' }}
+    </p>
+    @if (error()) {
+      <div class="alert error" role="alert">{{ error() }}</div>
+    }
+    <form #form="ngForm" (ngSubmit)="submit(form)" [attr.aria-busy]="busy()">
+      @if (!platform) {
+        <div class="field">
+          <label for="organization-code">Organization code</label
+          ><input
+            id="organization-code"
+            name="organizationCode"
+            [(ngModel)]="organizationCode"
+            required
+            maxlength="64"
+            autocomplete="organization"
+            autocapitalize="characters"
+            spellcheck="false"
+            [disabled]="busy()"
+          /><span class="help">Use the code on your activation invitation.</span>
+        </div>
+      }
+      <div class="field">
+        <label for="email">Email address</label
+        ><input
+          id="email"
+          name="email"
+          type="email"
+          [(ngModel)]="email"
+          required
+          email
+          maxlength="254"
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+          [disabled]="busy()"
+        />
+      </div>
+      <div class="field">
+        <label for="password">Password</label
+        ><input
+          id="password"
+          name="password"
+          type="password"
+          [(ngModel)]="password"
+          required
+          maxlength="1024"
+          autocomplete="current-password"
+          [disabled]="busy()"
+        />
+      </div>
+      @if (form.submitted && form.invalid && !error()) {
+        <p class="alert error" role="alert">
+          Enter {{ platform ? '' : 'your organization code, ' }}a valid email address and password.
+        </p>
+      }
+      <button class="full-width" type="submit" [disabled]="busy()">
+        @if (busy()) {
+          <span class="spinner" aria-hidden="true"></span>
+        }
+        {{ busy() ? 'Signing in…' : platform ? 'Continue securely' : 'Sign in to workspace' }}
+      </button>
+    </form>
+    <p class="form-footer">
+      {{ platform ? 'Looking for your organization?' : 'Managing the platform?' }}
+      <a [routerLink]="platform ? '/sign-in' : '/platform/sign-in'">{{
+        platform ? 'Organization sign in' : 'Platform sign in'
+      }}</a>
+    </p>
+  </section>
+</div>

@@ -1195,6 +1195,8 @@ viewport-oriented rather than relying only on page numbers.
 -   Use HTTPS only.
 -   Do not log tokens or credentials.
 
+Platform Administrator session policy accepted 2026-11-18: five-minute maximum access-token lifetime (capped by remaining absolute lifetime when JWT issuance is implemented); thirty-minute refresh inactivity window; eight-hour absolute session lifetime. An expired refresh or absolute session deadline requires a fresh password-plus-TOTP session. Refresh activity cannot extend the absolute deadline and does not measure human activity. Fresh sign-ins create independent families without revoking other families or choosing an account-wide count limit. The internal session starter commits actual MFA acceptance with initial family/refresh-digest storage and returns raw refresh material only after commit. JWT signing/validation, refresh redemption/reuse, public login/authorization, and client delivery remain separate work. See [ADR 0040](docs/decisions/0040-platform-session-start-and-lifetimes.md).
+
 ### 9.4 SignalR
 
 Use SignalR for real-time notifications and progress events, not as a
@@ -1446,6 +1448,10 @@ No premature business features.
 documented commands.
 
 ### Phase 1 --- Platform identity and organization provisioning
+
+**Accepted delivery update, 2026-11-18:** The owner approved completing all remaining Phase 1 work as a local HTTPS Docker demonstration and submission package, including parallel implementation. [ADR 0041](docs/decisions/0041-phase-1-local-submission-delivery.md) records the accepted local region, invitation, initial tenant grant, recovery sign-in, RS256, refresh, durable-worker and Angular choices. The [submission runbook](docs/submission/phase-1/runbook.md) and [validation report](docs/submission/phase-1/validation-results.md) record current behavior and executed checks. Earlier component progress notes in this specification describe their historical slice, rather than current integration status. This approval does not extend into Phase 2 or resolve production hosting/residency/retention decisions.
+
+**Local delivery completed, 2026-11-19:** The fresh Docker/browser scenario passed all eleven checkpoints with no skipped checks; backend 631 tests, frontend 24 tests, Release/format checks and clean extracted-source builds passed. This establishes the approved local Phase 1 exit workflow. Hosted CI, production deployment and later phases are not claimed complete; the validation report and known limitations define the evidence boundary.
 
 Deliverables: - Global control-plane database. - Organization
 registry. - Platform administrator authentication/authorization. -
@@ -1757,3 +1763,11 @@ Pending authenticator-secret persistence approved 2026-11-17: account-bound ciph
 TOTP parameters/primitive approved 2026-11-17: random 20-byte canonical Base32 secrets; six-digit HMAC-SHA1 codes, 30-second steps, Unix epoch, and current +/- one step. A small RFC implementation using .NET primitives returns the matched step for later atomic replay enforcement. See [ADR 0034](docs/decisions/0034-totp-primitive.md). It does not grant authentication or enable public MFA flows.
 
 Platform Administrator MFA attempt/replay policy approved 2026-11-17: five valid-challenge code failures in a 15-minute window trigger a 15-minute account MFA block; replacement challenges do not reset the budget. Persist accepted TOTP steps, reject reuse/older steps, and require atomic completion/nonce consumption. See [ADR 0035](docs/decisions/0035-mfa-attempt-replay-controls.md). No public confirmation/login endpoint or confirmed MFA credential is enabled by the storage slice.
+
+Internal MFA enrollment confirmation approved 2026-11-17: verify a server-stored pending secret using the actual authenticator code; atomically consume/replay-protect the challenge, persist confirmed ciphertext, enable MFA, rotate security/concurrency stamps, revoke other challenges, and transfer pending state. Issue ten independent 128-bit hexadecimal recovery codes once, storing only account-bound SHA-256 digests. See [ADR 0036](docs/decisions/0036-mfa-enrollment-confirmation.md). Recovery authentication/reset/regeneration, public APIs, and session issuance remain separate work.
+
+Platform password entry approved 2026-11-18: verify only platform-scoped administrator credentials; normalize passwords to NFC without reapplying creation minimum/blocklist; issue only restricted MFA challenges after current hash/stamp/scope checks. Five consecutive wrong passwords trigger a 15-minute password lockout using existing Identity fields, independent of MFA controls. See [ADR 0037](docs/decisions/0037-platform-password-entry.md). Session/token issuance, public APIs, and recovery authentication remain separate work.
+
+Confirmed-factor sign-in verification approved 2026-11-18: resolve the subject from a stored Verification token, revalidate current account/role/stamp/lockout/factor state, verify confirmed TOTP, and consume/replay-protect the challenge inside a caller-owned read-committed completion transaction. Return only a provisional server-side public subject; session creation must later commit together with it. See [ADR 0038](docs/decisions/0038-platform-mfa-verification.md). No token/session or public endpoint is enabled by this slice.
+
+Session/refresh persistence approved 2026-11-18: global account-bound TokenFamily records and digest-only RefreshToken records with UTC timestamps, NO ACTION relationships, unique public IDs/digests, retained consumption history, and one unconsumed token per family. See [ADR 0039](docs/decisions/0039-session-refresh-token-storage.md). This is storage only; concrete lifetimes, signing keys, issuance/rotation/revocation workflows, authorization, and public API/client integration remain separately reviewed work.

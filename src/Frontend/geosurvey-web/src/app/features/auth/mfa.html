@@ -1,0 +1,155 @@
+<div class="auth-layout">
+  <section class="auth-intro" aria-labelledby="mfa-title">
+    <p class="eyebrow">Platform identity verification</p>
+    <h1 id="mfa-title">
+      {{
+        recoveryCodes().length
+          ? 'Keep your recovery codes safe.'
+          : enrollment
+            ? 'Add your authenticator.'
+            : 'One more security check.'
+      }}
+    </h1>
+    <p>
+      {{
+        enrollment
+          ? 'An authenticator protects platform administration. Setup is confirmed only when a code from your app is accepted.'
+          : 'Use a current six-digit code from your authenticator, or one unused recovery code.'
+      }}
+    </p>
+    <div class="step">
+      <span class="step-number">01</span>
+      <div>
+        <strong>Keep security material private</strong>
+        <p>Do not share setup keys, authenticator codes, or recovery codes.</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-number">02</span>
+      <div>
+        <strong>Use a fresh code</strong>
+        <p>
+          An accepted authenticator code cannot be reused. Wait for the next code when signing in
+          again.
+        </p>
+      </div>
+    </div>
+  </section>
+  <section class="card auth-card" aria-labelledby="verification-title">
+    @if (error()) {
+      <div class="alert error" role="alert">{{ error() }}</div>
+    }
+    @if (recoveryCodes().length) {
+      <p class="eyebrow">Shown once</p>
+      <h2 id="verification-title">Save all ten recovery codes</h2>
+      <div class="alert warning">
+        Each code works once, together with your password. These codes cannot be displayed again.
+      </div>
+      <ul class="recovery-codes" aria-label="One-time recovery codes">
+        @for (recoveryCode of recoveryCodes(); track recoveryCode) {
+          <li>{{ recoveryCode }}</li>
+        }
+      </ul>
+      <button class="secondary" type="button" (click)="copyCodes()">
+        {{ copied() ? 'Copied' : 'Copy recovery codes' }}
+      </button>
+      <label class="checkbox"
+        ><input type="checkbox" name="saved" [(ngModel)]="saved" />I have saved all ten codes in a
+        secure place.</label
+      >
+      <button class="full-width" type="button" [disabled]="!saved" (click)="finish()">
+        Continue to fresh sign-in
+      </button>
+    } @else {
+      <p class="eyebrow">
+        {{ enrollment ? 'Authenticator setup' : 'Multi-factor authentication' }}
+      </p>
+      <h2 id="verification-title">
+        {{
+          enrollment
+            ? 'Set up manually in your app'
+            : recovery
+              ? 'Use a recovery code'
+              : 'Enter authenticator code'
+        }}
+      </h2>
+      @if (busy() && enrollment && !material()) {
+        <p role="status">
+          <span class="spinner" aria-hidden="true"></span> Preparing secure setup…
+        </p>
+      }
+      @if (material(); as setup) {
+        <p class="muted">
+          Add a time-based account in your authenticator app using this setup key.
+        </p>
+        <p class="secret mono" aria-label="Authenticator setup key">{{ setup.secret }}</p>
+        <p class="help">Time based (TOTP), 6 digits, 30-second interval, SHA-1.</p>
+        <details>
+          <summary>Show provisioning URI</summary>
+          <div class="field">
+            <label for="provisioning-uri">Authenticator provisioning URI</label
+            ><textarea
+              id="provisioning-uri"
+              class="mono"
+              readonly
+              rows="4"
+              [value]="setup.provisioningUri"
+              spellcheck="false"
+            ></textarea>
+          </div>
+        </details>
+        <p class="help">Setup expires {{ setup.expiresAtUtc | date: 'short' }}.</p>
+      }
+      @if (!enrollment || material()) {
+        <form #form="ngForm" (ngSubmit)="submit(form)" [attr.aria-busy]="busy()">
+          <div class="field">
+            <label for="verification-code">{{
+              recovery ? 'Unused recovery code' : 'Six-digit authenticator code'
+            }}</label>
+            <input
+              id="verification-code"
+              name="code"
+              [(ngModel)]="code"
+              required
+              [pattern]="recovery ? recoveryPattern : '[0-9]{6}'"
+              [attr.inputmode]="recovery ? 'text' : 'numeric'"
+              [maxlength]="recovery ? 128 : 6"
+              autocomplete="one-time-code"
+              autocapitalize="characters"
+              spellcheck="false"
+              [disabled]="busy()"
+            />
+            <span class="help">{{
+              recovery
+                ? 'Enter all eight groups, including hyphens.'
+                : 'Use the current code shown in your authenticator app.'
+            }}</span>
+          </div>
+          @if (form.submitted && form.invalid && !error()) {
+            <p class="alert error" role="alert">
+              {{
+                recovery
+                  ? 'Enter the full recovery code in its original format.'
+                  : 'Enter a six-digit code.'
+              }}
+            </p>
+          }
+          <button class="full-width" type="submit" [disabled]="busy()">
+            @if (busy()) {
+              <span class="spinner" aria-hidden="true"></span>
+            }
+            {{
+              busy() ? 'Verifying…' : enrollment ? 'Confirm authenticator' : 'Verify and sign in'
+            }}
+          </button>
+        </form>
+      }
+      @if (!enrollment) {
+        <button class="text-button" type="button" [disabled]="busy()" (click)="toggleRecovery()">
+          {{ recovery ? 'Use authenticator instead' : 'Use a recovery code instead' }}
+        </button>
+      }
+      <p class="form-footer"><a routerLink="/platform/sign-in">Start sign-in again</a></p>
+    }
+  </section>
+</div>

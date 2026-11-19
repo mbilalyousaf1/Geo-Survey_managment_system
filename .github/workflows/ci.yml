@@ -66,10 +66,50 @@ jobs:
         run: npm ci
 
       - name: Verify frontend formatting
-        run: npm exec -- prettier --check src angular.json package.json tsconfig.json tsconfig.app.json tsconfig.spec.json .prettierrc
+        run: npm run format:check
 
       - name: Build frontend for production
         run: npm run build
 
       - name: Run frontend tests
         run: npm test -- --watch=false
+
+  phase1-acceptance:
+    name: Phase 1 Docker and browser acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24.14.1'
+          package-manager-cache: false
+      - name: Build the demo tooling
+        run: dotnet build src/Backend/GeoSurvey.LocalDemo/GeoSurvey.LocalDemo.csproj --configuration Release
+      - name: Install browser runner
+        working-directory: src/Frontend/geosurvey-web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Start isolated local HTTPS stack
+        shell: pwsh
+        run: |
+          ./scripts/Start-Phase1Demo.ps1 -DemoRoot "$env:RUNNER_TEMP/GeoSurvey-Phase1-CI" -Acceptance
+      - name: Run the real browser workflow
+        shell: pwsh
+        run: ./scripts/Test-Phase1Demo.ps1 -DemoRoot "$env:RUNNER_TEMP/GeoSurvey-Phase1-CI"
+      - name: Stop only this job's stack
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path -LiteralPath "$env:RUNNER_TEMP/GeoSurvey-Phase1-CI/demo-settings.json") {
+            ./scripts/Stop-Phase1Demo.ps1 -DemoRoot "$env:RUNNER_TEMP/GeoSurvey-Phase1-CI" -RemoveOwnedVolumes
+          }

@@ -11,6 +11,12 @@ public sealed class MfaChallengeService(IMfaChallengeStore store, TimeProvider c
     /// <summary>Trusted password-verification flow supplies the account and stamp it verified, never client assertions.</summary>
     public async Task<MfaChallengeTicket> IssueAsync(Guid accountPublicId, string verifiedSecurityStamp,
         MfaChallengePurpose purpose, CancellationToken cancellationToken = default)
+        => await TryIssueAsync(accountPublicId, verifiedSecurityStamp, purpose, cancellationToken)
+            ?? throw new InvalidOperationException("Account is not eligible for the requested MFA challenge.");
+
+    /// <summary>Normal eligibility denial returns null. No token is returned when persistence rejects issuance.</summary>
+    public async Task<MfaChallengeTicket?> TryIssueAsync(Guid accountPublicId, string verifiedSecurityStamp,
+        MfaChallengePurpose purpose, CancellationToken cancellationToken = default)
     {
         ValidatePurpose(purpose);
         if (accountPublicId == Guid.Empty)
@@ -20,7 +26,7 @@ public sealed class MfaChallengeService(IMfaChallengeStore store, TimeProvider c
         var created = clock.GetUtcNow();
         var expires = created.Add(Lifetime);
         if (!await store.ReplaceAsync(accountPublicId, verifiedSecurityStamp, purpose, Hash(token), created, expires, cancellationToken))
-            throw new InvalidOperationException("Account is not eligible for the requested MFA challenge.");
+            return null;
         return new MfaChallengeTicket(token, expires);
     }
 

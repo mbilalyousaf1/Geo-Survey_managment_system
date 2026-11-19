@@ -6,7 +6,12 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:e2e": "playwright test",
+    "test:e2e:typecheck": "tsc --noEmit --project e2e/tsconfig.json",
+    "test:totp": "node --test e2e/totp.spec.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "private": true,
   "packageManager": "npm@11.11.0",
@@ -24,6 +29,8 @@
     "@angular/build": "^21.2.29",
     "@angular/cli": "^21.2.29",
     "@angular/compiler-cli": "^21.2.0",
+    "@playwright/test": "1.65.1",
+    "@types/node": "24.19.2",
     "jsdom": "^28.0.0",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",

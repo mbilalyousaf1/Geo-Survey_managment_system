@@ -1,6 +1,14 @@
 # Repository structure and dependency boundaries
 
-Status: Phase 0 foundation deliverables implemented and ready for user acceptance with documented limitations; Phase 1 has not started.
+Status: Phase 0 accepted; the approved full Phase 1 local Docker delivery is complete. The [validation report](../submission/phase-1/validation-results.md) records backend, fresh Docker/browser and extracted-source evidence. Historical foundation descriptions below do not describe the current integration status.
+
+## Current Phase 1 projects
+
+`GeoSurvey.Api` is the HTTP/composition boundary. Identity, Organizations and Tenancy expose dependency-free Application contracts; Domain stays independent of EF/HTTP. `GeoSurvey.ControlPlane.Infrastructure` owns global persistence and cross-module composition, Identity Infrastructure owns authentication primitives, and Tenancy Infrastructure owns tenant contexts, marker/grant verification and provisioning. Each authenticated tenant request opens a fresh context using trusted registry/account data.
+
+`GeoSurvey.Provisioning.Worker` hosts durable Hangfire jobs and the outbox dispatcher with separate privileged configuration. `GeoSurvey.LocalDemo` is operator setup tooling for external private configuration, migrations, restricted logins and masked bootstrap. Neither adds a public administrator-creation endpoint. The Angular app implements the approved Phase 1 screens; MAUI remains a separate skeleton and later-phase modules remain unimplemented.
+
+See [the submission architecture](../submission/phase-1/architecture-overview.md), [shared API contracts](phase-1-integration-contracts.md), [ADR 0041](../decisions/0041-phase-1-local-submission-delivery.md), and the dedicated `docker-compose.phase1.yml`. The earlier foundation layout below is retained as historical context.
 
 The source of truth is [the master specification](../../GeoSurvey_Master_Architecture_and_Codex_Spec.md), especially sections 3, 4, 5, 16, and 17. This document records the planned organization; it does not change business requirements or resolve open decisions.
 
@@ -186,3 +194,13 @@ Pending MFA enrollment: Identity Infrastructure owns PendingTotpEnrollment, its 
 TOTP calculation: Identity Infrastructure/Mfa/TotpAuthenticator.cs provides secret generation and stateless matched-step verification; published-vector tests are in Identity unit tests. See [component notes](../development/totp-primitive.md).
 
 MFA controls: Identity Infrastructure owns MfaVerificationState, policy/contract/service; ControlPlane Infrastructure supplies SQL attempt/replay transactions and shared active-block eligibility. See [control notes](../development/mfa-attempt-replay-controls.md).
+
+Enrollment confirmation: Identity Infrastructure owns the confirmation contract/result, confirmed-credential/recovery models, and issuance helper. ControlPlane Infrastructure owns MfaEnrollmentConfirmationService and the transaction across controls, credentials, stamps, and pending-state transfer. See [workflow notes](../development/mfa-enrollment-confirmation.md).
+
+Platform password entry: Identity Infrastructure/SignIn owns normalization, policy, contract/result; ControlPlane Infrastructure/SignIn owns the private-context transaction and scoped credential verification. The existing challenge issuer provides a non-throwing TryIssueAsync path. See [workflow notes](../development/platform-password-entry.md).
+
+Confirmed-factor verifier: Identity Infrastructure/SignIn owns IPlatformMfaVerifier and the provisional public-subject result; ControlPlane Infrastructure/SignIn owns token routing, current-factor verification, and participation in the caller's completion transaction. See [workflow notes](../development/platform-mfa-verification.md).
+
+Session storage: Identity Infrastructure/Sessions owns TokenFamily, RefreshToken, and their mappings; only the global control-plane model composes these records. ControlPlane Infrastructure owns the seventh migration. SQL constraints/upgrade tests live in its integration project; factory validation lives in Identity unit tests. See [storage notes](../development/session-refresh-token-storage.md). No issuer, authentication endpoint, or lifecycle service is enabled by these models.
+
+Session start: Identity Infrastructure/Sessions owns PlatformSessionPolicy; SignIn owns IPlatformSessionStarter and its non-record result/ticket. ControlPlane Infrastructure/SignIn owns PlatformSessionStarter and its private completion transaction. Contract tests live in Identity unit tests; real workflow/commit/fault/concurrency tests live in ControlPlane SQL integration tests. See [implementation notes](../development/platform-session-start.md). This adds no migration, JWT issuer, or host/public endpoint registration.

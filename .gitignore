@@ -26,6 +26,11 @@ TestResults/
 **/node_modules/
 **/dist/
 **/.angular/
+**/playwright-report/
+**/test-results/
+artifacts/
+*.key
+*.pem
 
 # OS files
 Thumbs.db

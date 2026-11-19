@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "infrastructureError": false,
+  "passed": 1,
+  "failed": 0,
+  "results": [
+    {
+      "status": "passed",
+      "durationMs": 87102,
+      "checks": [
+        "platform-enrollment-and-one-time-codes",
+        "password-and-authenticator-sign-in",
+        "secure-cookie-and-memory-token-transport",
+        "first-organization-provisioning-activation-and-sign-in",
+        "second-organization-provisioning-activation-and-sign-in",
+        "hostile-http-tenant-selectors-and-account-scope-denials",
+        "same-email-independent-passwords-and-workspace-identities",
+        "password-and-unused-recovery-code-sign-in",
+        "cross-tab-session-change-detection",
+        "real-cross-tab-single-use-refresh-coordination",
+        "consumed-recovery-code-rejection"
+      ],
+      "skippedChecks": [],
+      "failedStage": null,
+      "failureKind": null,
+      "platformHttpError": null
+    }
+  ]
+}

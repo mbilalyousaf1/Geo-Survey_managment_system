@@ -3,10 +3,14 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.23.0" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="10.0.15" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="10.0.9" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../GeoSurvey.Identity.Application/GeoSurvey.Identity.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="PasswordBlocklistData/common-passwords.txt" />

@@ -1,0 +1,19 @@
+# 0036: Atomic MFA enrollment confirmation and initial recovery codes
+
+Status: Accepted, 2026-11-17.
+
+The owner approved the [confirmation proposal](../architecture/mfa-enrollment-confirmation-proposal.md), including ten independently random 128-bit recovery codes displayed once. This is a bounded internal backend workflow; it does not add a public API, login/session/token issuer, recovery login, reset, or regeneration.
+
+Identity Infrastructure owns the IMfaEnrollmentConfirmation contract, a result without generated secret-bearing ToString, confirmed credential/recovery models and mappings, and the initial recovery generator/digest helper. ControlPlane Infrastructure implements the transaction because it owns the composed global context. No new package or technology is introduced.
+
+The confirmation implementation accepts only a server-resolved account, an enrollment token, and submitted code. It owns a ReadCommitted transaction, locks account then challenge base rows through the existing internal helper, and revalidates current enrollment eligibility and pending association after waiting. It decrypts server-stored pending material, checks the approved secret format, and uses the real TotpAuthenticator. It never accepts a client success flag, secret, or matched step.
+
+Wrong/malformed codes under a valid pending challenge commit the existing failure-budget operation. Replay rejection also commits its failure count/block. Invalid challenges or absent/conflicting stored credential state return rejection without replacing data. Unreadable/invalid protected material and infrastructure errors roll back and fail closed; they are not charged as user code failures.
+
+Successful confirmation atomically accepts/persists the TOTP step and consumes the challenge, copies the existing account-bound ciphertext to identity.TotpCredentials, records UTC confirmation time, inserts ten recovery digests, enables TwoFactorEnabled, rotates security/concurrency stamps, revokes other outstanding MFA challenges, and deletes the transferred pending row. It does not alter the password, account scope, organization association, email, or administrator claim. Existing confirmed/recovery records are never adopted or overwritten through initial confirmation, even if flags are inconsistent.
+
+Recovery codes use 16 random bytes each, encoded as 32 uppercase hexadecimal digits grouped by four with seven hyphens. Hash material is ASCII purpose GeoSurvey.Identity.MfaRecoveryCode.v1, NUL, account PublicId in lowercase N format, NUL, ungrouped uppercase hex. Persist uppercase SHA-256 digests only, with creation and nullable consumption UTC timestamps. The helper accepts canonical issued display format; that does not settle future recovery-entry normalization or authentication policy. Random-source/duplicate-digest/database failures must abort confirmation rather than partially issue a batch.
+
+The service refuses caller-owned transactions so it cannot return codes before its own commit. It prepares the result without logging it, commits, then returns the batch once. A rejected result has no codes. Retry after completion cannot redisplay/regenerate codes. Lost responses or uncertain commit outcomes must not trigger an automatic reset/reissue; once login exists, the authenticator remains the configured factor. Recovery regeneration/reset/consumption still require separate reviewed workflows. Do not treat enrollment success alone as an administration grant.
+
+The sixth migration adds two tables with NO ACTION account foreign keys. TotpCredentials has one row per account. MfaRecoveryCodes has a composite account/digest key and a consumed-time ordering CHECK constraint. There is no seed, startup migration, or bootstrap grant change. See [verification and limits](../development/mfa-enrollment-confirmation.md).

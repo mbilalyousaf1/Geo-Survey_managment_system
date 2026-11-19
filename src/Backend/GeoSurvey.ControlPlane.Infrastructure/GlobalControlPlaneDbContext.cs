@@ -1,7 +1,9 @@
 using GeoSurvey.ControlPlane.Infrastructure.Bootstrap;
+using GeoSurvey.ControlPlane.Infrastructure.Tenancy;
 using GeoSurvey.Identity.Infrastructure;
 using GeoSurvey.Identity.Infrastructure.Mfa;
 using GeoSurvey.Identity.Infrastructure.Persistence;
+using GeoSurvey.Identity.Infrastructure.Sessions;
 using GeoSurvey.Organizations.Domain;
 using GeoSurvey.Organizations.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
@@ -36,6 +38,14 @@ public sealed class GlobalControlPlaneDbContext : IdentityUserContext<IdentityAc
         builder.ApplyConfiguration(new MfaChallengeConfiguration());
         builder.ApplyConfiguration(new PendingTotpEnrollmentConfiguration());
         builder.ApplyConfiguration(new MfaVerificationStateConfiguration());
+        builder.ApplyConfiguration(new ConfirmedTotpCredentialConfiguration());
+        builder.ApplyConfiguration(new MfaRecoveryCodeConfiguration());
+        builder.ApplyConfiguration(new TokenFamilyConfiguration());
+        builder.ApplyConfiguration(new RefreshTokenConfiguration());
+        builder.ApplyConfiguration(new TenantRegistryEntryConfiguration());
+        builder.ApplyConfiguration(new AdministratorInvitationConfiguration());
+        builder.ApplyConfiguration(new ProvisioningOutboxMessageConfiguration());
+        builder.ApplyConfiguration(new TenantLifecycleAuditConfiguration());
         builder.Entity<IdentityAccount>().HasOne<Organization>().WithMany()
             .HasForeignKey(account => account.OrganizationId).IsRequired(false)
             .OnDelete(DeleteBehavior.NoAction);

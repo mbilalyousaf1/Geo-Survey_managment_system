@@ -27,7 +27,7 @@ public sealed class MfaVerificationUpgradeTests(PendingEnrollmentMigrationDataba
 
         await context.Database.MigrateAsync();
         await using var reader = database.CreateContext();
-        Assert.Equal(5, (await reader.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.Equal(8, (await reader.Database.GetAppliedMigrationsAsync()).Count());
         Assert.Empty(await reader.Set<MfaVerificationState>().ToListAsync());
         Assert.Equal(ciphertext, (await reader.Set<PendingTotpEnrollment>().SingleAsync()).ProtectedSecret);
         Assert.Equal("synthetic-secret", protector.Unprotect(account.PublicId, (await reader.Set<PendingTotpEnrollment>().SingleAsync()).ProtectedSecret));

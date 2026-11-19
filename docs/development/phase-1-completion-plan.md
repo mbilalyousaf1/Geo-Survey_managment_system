@@ -1,33 +1,26 @@
 # Phase 1 completion plan
 
-Updated: 2026-11-17.
+Updated: 2026-11-19.
+
+Submission priority update: the owner requested completion of all remaining Phase 1 work for submission **today**, selected a full local Docker demo plus submission package, and approved the [consolidated delivery plan](phase-1-submission-delivery-plan.md) and parallel agents. This authorizes implementation within that plan without repeated per-helper approvals. See [ADR 0041](../decisions/0041-phase-1-local-submission-delivery.md) and [shared integration contracts](../architecture/phase-1-integration-contracts.md).
 
 ## Current status — authoritative
 
-The owner clarified that the objective is **all remaining Phase 1 work**, not only the next MFA task. Existing significant-code/architecture approval rules remain in force. Later progress paragraphs below retain historical evidence and must not be read as current pending-work statements.
+The complete approved backend and Angular Phase 1 workflow is implemented: public Platform enrollment/TOTP/recovery sign-in; RS256/current-session authorization; strict refresh/logout; organization creation; durable outbox/Hangfire provisioning; tenant migrations and trusted marker/grant resolution; initial administrator activation; and the local HTTPS Docker stack/setup/package tooling. General RBAC, GIS/surveys and mobile integration remain later-phase work.
 
-Completed foundations: organization/account models and mappings; composed control-plane context and migrations; API persistence registration; local password corpus/policy; permanent bootstrap marker; atomic bootstrap service/restricted operator grants; masked operator console; restricted MFA challenges; account-bound TOTP secret protector; and PFX-backed persistent API Data Protection configuration.
+Current executed evidence: 631 backend tests passed with zero failures/skips; Release build passed with zero warnings/errors; formatting/analyzers passed; all 21 backend projects have no known vulnerable packages in the executed transitive NuGet audit. Frontend component/service tests passed 24/24. Final fresh Docker/Chromium acceptance passed one complete scenario with eleven checkpoints and zero skipped checks, including hostile HTTP tenant selectors and cross-scope denials. Clean extracted-source backend restore/build and Angular lockfile install/production build also passed. The [validation report](../submission/phase-1/validation-results.md) is the detailed evidence record.
 
-Latest verification: persistent MFA attempt/replay controls passed the full 370-test backend suite with zero failures/skips, a Release build with zero warnings/errors, and formatting/analyzer/whitespace checks. This run also includes the preceding standalone TOTP cases. See each slice's notes for exact verification scope and historical counts. No real administrator/deployment was provisioned.
+The stack uses generated external private configuration and synthetic acceptance credentials only. No real administrator, production deployment, commit or push was performed. Hosted GitHub Actions execution is unverified. The [runbook](../submission/phase-1/runbook.md) and [known limitations](../submission/phase-1/known-limitations.md) are part of the submission.
 
-Remaining delivery milestones:
-
-1. Protected pending authenticator-secret persistence, then enrollment confirmation, attempt/replay controls, and single-use recovery codes.
-2. Platform administrator password-plus-MFA authentication and server-side authorization, with reviewed token/session behavior.
-3. Organization registry/provisioning states and unresolved region/residency rules; authorized organization creation.
-4. Isolated tenant schema/provisioning/migration automation and trusted tenant resolution.
-5. Organization administrator onboarding with separately scoped credentials and reviewed activation behavior.
-6. Appropriate client integration and end-to-end Phase 1 acceptance, proving tenant isolation and failure handling.
-
-Latest approved slices: [protected pending authenticator-secret storage](pending-totp-enrollment.md), the [TOTP primitive](totp-primitive.md), and [persistent attempt/replay controls](mfa-attempt-replay-controls.md) are implemented. Next review: confirmed authenticator-secret storage and atomic enrollment confirmation, with recovery-code handling resolved before public enrollment completion. Address later business decisions when their milestones are reached; do not silently choose them or expand into Phase 2.
-
-The product owner requested continuation through Phase 1 completion. This extends the work scope across the remaining Phase 1 tasks; it does not waive the existing requirement to explain significant code/architecture changes and obtain approval, or permit invention of unresolved business rules. Documentation maintenance remains autonomous. Work stays in small reviewable slices; no later phase is authorized.
+The approved local Phase 1 exit workflow is complete. The submission includes the runbook, architecture, API collection, acceptance evidence and secret-scanned source manifest/archive. Production-only decisions and known limitations are documented. No later phase is authorized.
 
 ## Definition of completion
 
 From master specification section 16: a Platform Administrator can create a test organization, provisioning creates its isolated operational database, and authenticated requests safely resolve the correct tenant. Foundational models and tests alone do not meet these exit criteria.
 
-## Implemented foundation
+## Historical foundation progress
+
+Everything below records earlier incremental work and its evidence. Pending-work statements describe those earlier slices; the authoritative status and submission validation report above supersede them.
 
 - Separate organization accounts and explicit Platform/Organization scope.
 - Organization value object/entity and Identity account/email components.

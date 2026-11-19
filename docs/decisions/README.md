@@ -1,5 +1,7 @@
 # Architecture decision records
 
+Current Phase 1 delivery: [0041: Local Docker submission](0041-phase-1-local-submission-delivery.md), accepted 2026-11-18. It supersedes historical pending-public-integration statements below within its approved scope. See the [actual validation evidence](../submission/phase-1/validation-results.md).
+
 These records capture the context, decision, and consequences of GeoSurvey's architecture choices. The [master specification](../../GeoSurvey_Master_Architecture_and_Codex_Spec.md) remains the source of truth. Recording an existing decision does not approve open business requirements or imply that all related code exists.
 
 | Record | Status | Basis |
@@ -55,3 +57,13 @@ Pending authenticator storage: [0033](0033-pending-totp-enrollment-storage.md), 
 TOTP primitive: [0034](0034-totp-primitive.md), accepted 2026-11-17. Random 160-bit Base32 secret, six-digit HMAC-SHA1, 30-second steps, +/- one-step verification, and matched-step reporting. Persistent replay/attempt controls remain pending.
 
 MFA attempt/replay controls: [0035](0035-mfa-attempt-replay-controls.md), accepted 2026-11-17. Five failures within 15 minutes block MFA for 15 minutes across replacement challenges; persistent monotonic step acceptance requires a completion transaction.
+
+MFA enrollment confirmation: [0036](0036-mfa-enrollment-confirmation.md), accepted 2026-11-17. Internal atomic TOTP confirmation, stamp rotation, confirmed ciphertext, and ten one-time-delivery 128-bit recovery codes persisted as account-bound hashes. Recovery consumption and public login remain pending.
+
+Platform password entry: [0037](0037-platform-password-entry.md), accepted 2026-11-18. Scope-specific real password verification, five-consecutive-failure/15-minute lockout, rehash/stamp revalidation, and restricted MFA challenge issuance. No authenticated session or public endpoint is enabled.
+
+Confirmed-factor sign-in verification: [0038](0038-platform-mfa-verification.md), accepted 2026-11-18. Token-resolved public subject, actual confirmed TOTP, current eligibility/lockout checks, and atomic replay/nonce updates within a caller-owned read-committed completion transaction. Session/token issuance remains separate.
+
+Session/refresh storage: [0039](0039-session-refresh-token-storage.md), accepted 2026-11-18. Global account-bound token families, digest-only refresh records, UTC/integrity constraints, one unconsumed token per family, and retained consumption history. Session issuance and concrete lifecycle policies remain separate.
+
+Platform session start/lifetimes: [0040](0040-platform-session-start-and-lifetimes.md), accepted 2026-11-18. Transaction-owned actual MFA plus initial session/digest persistence; five-minute future access maximum, thirty-minute refresh inactivity, eight-hour absolute limit, and independent families. JWT/public authentication and refresh/revocation flows remain separate.

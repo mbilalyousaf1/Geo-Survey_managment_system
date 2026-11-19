@@ -22,7 +22,7 @@ public sealed class PendingTotpEnrollmentUpgradeTests(MfaChallengeMigrationDatab
 
         await context.Database.MigrateAsync();
         await using var reader = database.CreateContext();
-        Assert.Equal(5, (await reader.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.Equal(8, (await reader.Database.GetAppliedMigrationsAsync()).Count());
         Assert.Empty(await reader.Set<PendingTotpEnrollment>().ToListAsync());
         Assert.Empty(await reader.BootstrapCompletions.ToListAsync());
         var loaded = await reader.Set<MfaChallenge>().SingleAsync();

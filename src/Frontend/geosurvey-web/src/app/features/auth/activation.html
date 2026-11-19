@@ -1,0 +1,125 @@
+<div class="auth-layout">
+  <section class="auth-intro" aria-labelledby="activation-title">
+    <p class="eyebrow">Organization onboarding</p>
+    <h1 id="activation-title">Your workspace starts here.</h1>
+    <p>Activate your initial administrator account with a password only you know.</p>
+    <div class="step">
+      <span class="step-number">01</span>
+      <div>
+        <strong>Check the invitation</strong>
+        <p>Confirm the organization and recipient email before continuing.</p>
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-number">02</span>
+      <div>
+        <strong>Choose a unique password</strong>
+        <p>
+          Use a long passphrase or a password manager. This account is specific to this
+          organization.
+        </p>
+      </div>
+    </div>
+  </section>
+  <section class="card auth-card" aria-labelledby="setup-title">
+    @if (activated(); as account) {
+      <p class="eyebrow">Account activated</p>
+      <h2 id="setup-title">You are ready to sign in</h2>
+      <div class="alert success" role="status">Your administrator account has been activated.</div>
+      <dl class="key-value">
+        <div>
+          <dt>Organization code</dt>
+          <dd class="mono">{{ account.organizationCode }}</dd>
+        </div>
+        <div>
+          <dt>Email</dt>
+          <dd>{{ account.administratorEmail }}</dd>
+        </div>
+      </dl>
+      <a
+        class="button full-width"
+        style="margin-top: 1.2rem"
+        routerLink="/sign-in"
+        [queryParams]="{ organization: account.organizationCode }"
+        >Continue to organization sign in</a
+      >
+    } @else {
+      <p class="eyebrow">Single-use invitation</p>
+      <h2 id="setup-title">Set up your administrator account</h2>
+      @if (error()) {
+        <div class="alert error" role="alert">{{ error() }}</div>
+      }
+      @if (busy() && !info()) {
+        <p role="status"><span class="spinner" aria-hidden="true"></span> Checking invitation…</p>
+      }
+      @if (info(); as invitation) {
+        <dl class="key-value">
+          <div>
+            <dt>Organization</dt>
+            <dd>
+              {{ invitation.organizationName }}
+              <span class="muted">({{ invitation.organizationCode }})</span>
+            </dd>
+          </div>
+          <div>
+            <dt>Recipient</dt>
+            <dd>{{ invitation.administratorEmail }}</dd>
+          </div>
+          <div>
+            <dt>Expires</dt>
+            <dd>{{ invitation.expiresAtUtc | date: 'medium' }}</dd>
+          </div>
+        </dl>
+        <form
+          #form="ngForm"
+          (ngSubmit)="submit(form)"
+          style="margin-top: 1.4rem"
+          [attr.aria-busy]="busy()"
+        >
+          <div class="field">
+            <label for="new-password">Choose a password</label
+            ><input
+              id="new-password"
+              type="password"
+              name="password"
+              [(ngModel)]="password"
+              required
+              maxlength="256"
+              autocomplete="new-password"
+              aria-describedby="password-help"
+              [disabled]="busy()"
+            /><span id="password-help" class="help"
+              >15–128 characters, including spaces. Common passwords are not accepted. No special
+              character pattern is required.</span
+            >
+          </div>
+          <div class="field">
+            <label for="confirm-password">Confirm password</label
+            ><input
+              id="confirm-password"
+              type="password"
+              name="confirmation"
+              [(ngModel)]="confirmation"
+              required
+              maxlength="256"
+              autocomplete="new-password"
+              [disabled]="busy()"
+            />
+          </div>
+          @if (form.submitted && form.invalid && !error()) {
+            <p class="alert error" role="alert">Enter and confirm your chosen password.</p>
+          }
+          <button class="full-width" type="submit" [disabled]="busy()">
+            @if (busy()) {
+              <span class="spinner" aria-hidden="true"></span>
+            }
+            {{ busy() ? 'Activating…' : 'Activate administrator account' }}
+          </button>
+        </form>
+      }
+      <p class="form-footer">
+        Already activated? <a routerLink="/sign-in">Organization sign in</a>
+      </p>
+    }
+  </section>
+</div>

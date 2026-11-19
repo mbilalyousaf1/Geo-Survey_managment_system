@@ -5,6 +5,15 @@
 !.editorconfig
 !src/
 !src/Backend/
+!src/Backend/**
+!src/Frontend/
+!src/Frontend/geosurvey-web/
+!src/Frontend/geosurvey-web/**
+!deploy/
+!deploy/docker/
+!deploy/docker/**
+!deploy/sql/
+!deploy/sql/**
 !src/Backend/GeoSurvey.Api/
 !src/Backend/GeoSurvey.Api/**
 !src/Backend/GeoSurvey.ControlPlane.Infrastructure/
@@ -22,6 +31,11 @@
 # Exclude generated output, local IDE state, and credentials under all included projects.
 **/bin
 **/obj
+**/node_modules
+**/dist
+**/.angular
+**/playwright-report
+**/test-results
 **/Properties
 **/*.user
 **/*.suo

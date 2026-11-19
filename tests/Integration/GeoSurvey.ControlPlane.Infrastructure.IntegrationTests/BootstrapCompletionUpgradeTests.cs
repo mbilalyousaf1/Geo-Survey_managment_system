@@ -23,7 +23,7 @@ public sealed class BootstrapCompletionUpgradeTests(InitialMigrationDatabase dat
         await context.SaveChangesAsync();
 
         await context.Database.MigrateAsync();
-        Assert.Equal(5, (await context.Database.GetAppliedMigrationsAsync()).Count());
+        Assert.Equal(8, (await context.Database.GetAppliedMigrationsAsync()).Count());
         Assert.Empty(await context.BootstrapCompletions.ToListAsync());
         var completion = BootstrapCompletion.Create();
         context.Add(completion);

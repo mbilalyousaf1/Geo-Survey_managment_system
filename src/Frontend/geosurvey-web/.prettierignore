@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.angular/
+.vscode/
+test-results/
+playwright-report/
+package-lock.json

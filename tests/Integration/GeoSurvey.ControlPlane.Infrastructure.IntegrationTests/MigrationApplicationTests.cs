@@ -34,12 +34,15 @@ public sealed class MigrationApplicationTests(MigrationDatabase database) : ICla
         Assert.True(database.StartedWithoutDatabase);
         await using var context = database.CreateContext();
         var expectedMigrations = context.Database.GetMigrations().ToArray();
-        Assert.Equal(5, expectedMigrations.Length);
+        Assert.Equal(8, expectedMigrations.Length);
         Assert.EndsWith("_InitialGlobalControlPlane", expectedMigrations[0]);
         Assert.EndsWith("_AddBootstrapCompletion", expectedMigrations[1]);
         Assert.EndsWith("_AddMfaChallenges", expectedMigrations[2]);
         Assert.EndsWith("_AddPendingTotpEnrollments", expectedMigrations[3]);
         Assert.EndsWith("_AddMfaVerificationStates", expectedMigrations[4]);
+        Assert.EndsWith("_AddConfirmedMfaEnrollment", expectedMigrations[5]);
+        Assert.EndsWith("_AddTokenFamiliesAndRefreshTokens", expectedMigrations[6]);
+        Assert.EndsWith("_AddTenantProvisioningAndActivation", expectedMigrations[7]);
         Assert.Equal(expectedMigrations, await context.Database.GetAppliedMigrationsAsync());
         Assert.Empty(await context.Database.GetPendingMigrationsAsync());
 
@@ -48,11 +51,11 @@ public sealed class MigrationApplicationTests(MigrationDatabase database) : ICla
         Assert.All(rows, row => Assert.Equal("10.0.9", row.ProductVersion));
         var tables = await context.Database.SqlQuery<string>(
             $"SELECT [s].[name] + '.' + [t].[name] AS [Value] FROM [sys].[tables] AS [t] INNER JOIN [sys].[schemas] AS [s] ON [s].[schema_id] = [t].[schema_id] WHERE [t].[is_ms_shipped] = 0").ToListAsync();
-        Assert.Equal(new[] { "controlplane.BootstrapCompletion", "controlplane.__EFMigrationsHistory", "identity.AccountClaims", "identity.AccountLogins", "identity.AccountTokens", "identity.Accounts", "identity.MfaChallenges", "identity.MfaVerificationStates", "identity.PendingTotpEnrollments", "organization.Organizations" },
+        Assert.Equal(new[] { "audit.TenantLifecycleAudit", "controlplane.BootstrapCompletion", "controlplane.__EFMigrationsHistory", "identity.AccountClaims", "identity.AccountLogins", "identity.AccountTokens", "identity.Accounts", "identity.MfaChallenges", "identity.MfaRecoveryCodes", "identity.MfaVerificationStates", "identity.PendingTotpEnrollments", "identity.RefreshTokens", "identity.TokenFamilies", "identity.TotpCredentials", "organization.Organizations", "tenancy.AdministratorInvitations", "tenancy.ProvisioningOutbox", "tenancy.TenantRegistry" },
             tables.Order(StringComparer.Ordinal));
         var foreignKeyActions = await context.Database.SqlQuery<int>(
             $"SELECT CAST([delete_referential_action] AS int) AS [Value] FROM [sys].[foreign_keys]").ToListAsync();
-        Assert.Equal(8, foreignKeyActions.Count);
+        Assert.Equal(17, foreignKeyActions.Count);
         Assert.All(foreignKeyActions, action => Assert.Equal(0, action));
     }
 
@@ -85,7 +88,7 @@ public sealed class MigrationApplicationTests(MigrationDatabase database) : ICla
         Assert.Equal(account.NormalizedEmail, loadedAccount.NormalizedEmail);
         Assert.Equal(account.ConcurrencyStamp, loadedAccount.ConcurrencyStamp);
         var after = await ReadHistoryAsync(reader);
-        Assert.Equal(5, after.Count);
+        Assert.Equal(8, after.Count);
         Assert.Equal(before.OrderBy(row => row.MigrationId).Select(row => (row.MigrationId, row.ProductVersion)),
             after.OrderBy(row => row.MigrationId).Select(row => (row.MigrationId, row.ProductVersion)));
         Assert.Empty(await reader.Database.GetPendingMigrationsAsync());

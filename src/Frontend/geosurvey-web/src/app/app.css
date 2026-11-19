@@ -1,0 +1,118 @@
+.site-header {
+  background: white;
+  border-bottom: 1px solid #d8e3df;
+}
+main:focus {
+  outline: none;
+}
+.header-inner {
+  max-width: 1260px;
+  margin: auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
+  color: #153e35;
+  font-size: 1.25rem;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+}
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 2.65rem;
+  height: 2.65rem;
+  background: #e7f2eb;
+  border-radius: 0.65rem;
+}
+.brand-mark svg {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+.brand-caption {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.035em;
+  font-weight: 500;
+  color: #5c7469;
+  margin-top: 0.15rem;
+}
+nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 0.86rem;
+}
+nav a {
+  text-decoration: none;
+  color: #536b62;
+}
+nav a.active {
+  color: #075e52;
+  font-weight: 650;
+}
+nav button {
+  padding: 0.5rem 0.8rem;
+}
+.account-label {
+  color: #647c71;
+  max-width: 17rem;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.session-notice {
+  padding: 0.8rem 1.5rem;
+  background: #fff4d9;
+  color: #705210;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.site-footer {
+  max-width: 1160px;
+  margin: 0 auto;
+  border-top: 1px solid #d8e3df;
+  padding: 1.4rem 1.5rem;
+  color: #687d72;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.75rem;
+}
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background: white;
+  padding: 0.7rem;
+  z-index: 100;
+}
+.skip-link:focus {
+  top: 0.5rem;
+}
+@media (max-width: 780px) {
+  .header-inner {
+    align-items: flex-start;
+    padding: 0.9rem 1rem;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  nav {
+    gap: 1rem;
+    width: 100%;
+    flex-wrap: wrap;
+    font-size: 0.8rem;
+  }
+  .account-label {
+    display: none;
+  }
+  .site-footer {
+    flex-direction: column;
+  }
+}

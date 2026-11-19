@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <UserSecretsId>geosurvey-provisioning-development</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Hangfire.NetCore" Version="1.8.25" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.8.25" />
+    <!-- Hangfire's lower-bound dependency resolves to vulnerable 11.x without this patched pin. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <ProjectReference Include="../GeoSurvey.ControlPlane.Infrastructure/GeoSurvey.ControlPlane.Infrastructure.csproj" />
+    <ProjectReference Include="../Modules/Tenancy/GeoSurvey.Tenancy.Infrastructure/GeoSurvey.Tenancy.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,144 @@
+<div class="page">
+  <p class="eyebrow">
+    <a routerLink="/platform/organizations">Organizations</a> / Provisioning &amp; onboarding
+  </p>
+  @if (error()) {
+    <div class="alert error" role="alert">{{ error() }}</div>
+  }
+  @if (organization(); as org) {
+    <div class="page-heading">
+      <div>
+        <h1>{{ org.displayName }}</h1>
+        <p class="muted">
+          Organization code <strong class="mono">{{ org.code }}</strong>
+        </p>
+      </div>
+      <span [class]="'status ' + org.state.toLowerCase()">{{
+        org.state === 'AwaitingAdministrator' ? 'Awaiting administrator' : org.state
+      }}</span>
+    </div>
+    <div class="grid-wide">
+      <section class="card" aria-labelledby="status-title">
+        <div class="page-heading">
+          <h2 id="status-title">Provisioning status</h2>
+          <button class="secondary" type="button" [disabled]="loading() || busy()" (click)="load()">
+            {{ loading() ? 'Refreshing…' : 'Refresh' }}
+          </button>
+        </div>
+        @switch (org.state) {
+          @case ('Pending') {
+            <div class="alert info" role="status">
+              Organization created. Provisioning is queued.
+            </div>
+          }
+          @case ('Provisioning') {
+            <div class="alert info" role="status">
+              Provisioning is running. This page checks for progress every six seconds.
+            </div>
+          }
+          @case ('AwaitingAdministrator') {
+            <div class="alert warning" role="status">
+              Provisioning is complete. Invite the initial administrator to activate their account.
+            </div>
+          }
+          @case ('Ready') {
+            <div class="alert success" role="status">
+              The administrator has activated their account. This organization is ready to sign in.
+            </div>
+          }
+          @case ('Failed') {
+            <div class="alert error" role="status">
+              Provisioning needs attention. A retry resumes the existing organization safely.
+            </div>
+            <button type="button" [disabled]="busy()" (click)="retry()">
+              {{ busy() ? 'Requesting retry…' : 'Retry provisioning' }}
+            </button>
+          }
+          @case ('Suspended') {
+            <div class="alert warning" role="status">
+              This organization is suspended. Workspace access is unavailable.
+            </div>
+          }
+        }
+        <dl class="key-value">
+          <div>
+            <dt>Region profile</dt>
+            <dd>{{ org.regionKey }}</dd>
+          </div>
+          <div>
+            <dt>Created</dt>
+            <dd>{{ org.createdAtUtc | date: 'medium' }}</dd>
+          </div>
+          <div>
+            <dt>Last updated</dt>
+            <dd>{{ org.updatedAtUtc | date: 'medium' }}</dd>
+          </div>
+          <div>
+            <dt>Organization reference</dt>
+            <dd class="mono">{{ org.publicId }}</dd>
+          </div>
+        </dl>
+      </section>
+      <section class="card" aria-labelledby="administrator-title">
+        <p class="eyebrow">Secure handoff</p>
+        <h2 id="administrator-title">Initial administrator</h2>
+        <p>{{ org.administratorEmail }}</p>
+        @if (org.state === 'AwaitingAdministrator') {
+          <p class="muted">
+            Create a single-use link valid for 24 hours. Share it privately with this recipient.
+            They will set their own password.
+          </p>
+          <p class="help">
+            Issuing another link revokes any earlier unused invitation. An activated account cannot
+            be reset here.
+          </p>
+          <button type="button" [disabled]="busy()" (click)="issueInvitation()">
+            {{
+              busy()
+                ? 'Issuing…'
+                : invitation()
+                  ? 'Replace activation invitation'
+                  : 'Issue activation invitation'
+            }}
+          </button>
+        } @else if (org.state === 'Ready') {
+          <p class="muted">Administrator activation is complete.</p>
+          <a
+            class="button secondary"
+            routerLink="/sign-in"
+            [queryParams]="{ organization: org.code }"
+            >Organization sign in</a
+          >
+        } @else {
+          <p class="muted">
+            An activation invitation becomes available after successful provisioning.
+          </p>
+        }
+        @if (invitation(); as invite) {
+          <div class="alert warning" style="margin-top: 1.2rem">
+            This link is shown once. It expires {{ invite.expiresAtUtc | date: 'medium' }}.
+          </div>
+          <div class="field">
+            <label for="activation-link">Private activation link</label
+            ><textarea
+              id="activation-link"
+              readonly
+              rows="4"
+              [value]="invitationUrl()"
+              spellcheck="false"
+            ></textarea>
+          </div>
+          <div class="actions">
+            <button class="secondary" type="button" (click)="copyInvitation()">
+              {{ copied() ? 'Copied' : 'Copy link' }}</button
+            ><button class="text-button" type="button" (click)="hideInvitation()">Hide link</button>
+          </div>
+        }
+      </section>
+    </div>
+  } @else if (loading()) {
+    <div class="card" role="status">
+      <span class="spinner" aria-hidden="true"></span> Loading organization…
+    </div>
+  }
+</div>

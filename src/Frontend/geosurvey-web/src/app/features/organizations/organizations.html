@@ -1,0 +1,207 @@
+<div class="page">
+  <div class="page-heading">
+    <div>
+      <p class="eyebrow">Platform administration / Organization registry</p>
+      <h1>Organizations</h1>
+      <p class="muted">
+        Create an organization, follow its provisioning, and invite its initial administrator.
+      </p>
+    </div>
+    <button
+      type="button"
+      [attr.aria-expanded]="showCreate"
+      aria-controls="create-organization"
+      (click)="showCreate = !showCreate"
+    >
+      {{ showCreate ? 'Close creation form' : '+ Create organization' }}
+    </button>
+  </div>
+  @if (showCreate) {
+    <section
+      id="create-organization"
+      class="card"
+      style="margin-bottom: 1.5rem"
+      aria-labelledby="create-title"
+    >
+      <h2 id="create-title">Create an organization</h2>
+      <p class="muted">
+        Provisioning runs in the background. The recipient chooses their own password after you
+        share an activation link.
+      </p>
+      @if (createError()) {
+        <div class="alert error" role="alert">{{ createError() }}</div>
+      }
+      <form #form="ngForm" (ngSubmit)="create(form)" [attr.aria-busy]="saving()">
+        <div class="grid">
+          <div class="field">
+            <label for="display-name">Organization name</label
+            ><input
+              id="display-name"
+              name="displayName"
+              [(ngModel)]="draft.displayName"
+              required
+              maxlength="200"
+              [disabled]="saving()"
+            />
+          </div>
+          <div class="field">
+            <label for="code">Organization code</label
+            ><input
+              id="code"
+              name="code"
+              [(ngModel)]="draft.code"
+              required
+              maxlength="50"
+              minlength="3"
+              pattern="[A-Za-z0-9]+(-[A-Za-z0-9]+)*"
+              autocomplete="off"
+              spellcheck="false"
+              [disabled]="saving()"
+            /><span class="help"
+              >3–50 letters, numbers, or single hyphens. Stored in lowercase; no leading or trailing
+              hyphen.</span
+            >
+          </div>
+          <div class="field">
+            <label for="admin-email">Initial administrator email</label
+            ><input
+              id="admin-email"
+              name="administratorEmail"
+              type="email"
+              [(ngModel)]="draft.administratorEmail"
+              required
+              email
+              maxlength="254"
+              autocomplete="off"
+              [disabled]="saving()"
+            />
+          </div>
+          <div class="field">
+            <label for="region">Region profile</label
+            ><select
+              id="region"
+              name="regionKey"
+              [(ngModel)]="draft.regionKey"
+              required
+              [disabled]="saving() || !regions().length"
+            >
+              <option value="" disabled>Select an available region</option>
+              @for (region of regions(); track region.key) {
+                <option [value]="region.key">{{ region.displayName }}</option>
+              }</select
+            ><span class="help">Only profiles configured by the platform are available.</span>
+            @if (!regions().length) {
+              <button class="text-button" type="button" (click)="loadRegions()">
+                Reload region profiles
+              </button>
+            }
+          </div>
+        </div>
+        @if (form.submitted && form.invalid) {
+          <p class="alert error" role="alert">
+            Complete all fields with a valid email address and organization code.
+          </p>
+        }
+        <div class="actions">
+          <button type="submit" [disabled]="saving() || !regions().length">
+            @if (saving()) {
+              <span class="spinner" aria-hidden="true"></span>
+            }
+            {{ saving() ? 'Creating…' : 'Create and begin provisioning' }}</button
+          ><button
+            class="secondary"
+            type="button"
+            [disabled]="saving()"
+            (click)="showCreate = false"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+  @if (error()) {
+    <div class="alert error" role="alert">{{ error() }}</div>
+  }
+  <section class="card" aria-labelledby="registry-title" [attr.aria-busy]="loading()">
+    <div class="page-heading">
+      <div>
+        <h2 id="registry-title">
+          Organization registry
+          @if (result(); as data) {
+            <span class="muted">({{ data.totalCount }})</span>
+          }
+        </h2>
+        <p class="help">Status refreshes every six seconds while this page is open.</p>
+      </div>
+      <button class="secondary" type="button" [disabled]="loading()" (click)="load()">
+        {{ loading() ? 'Refreshing…' : 'Refresh' }}
+      </button>
+    </div>
+    @if (result(); as data) {
+      @if (data.items.length) {
+        <div class="table-wrap">
+          <table>
+            <caption class="sr-only">
+              Organizations and provisioning status
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Organization</th>
+                <th scope="col">Status</th>
+                <th scope="col">Administrator</th>
+                <th scope="col">Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (organization of data.items; track organization.publicId) {
+                <tr>
+                  <td>
+                    <a [routerLink]="['/platform/organizations', organization.publicId]">{{
+                      organization.displayName
+                    }}</a
+                    ><small>{{ organization.code }}</small>
+                  </td>
+                  <td>
+                    <span [class]="'status ' + organization.state.toLowerCase()">{{
+                      organization.state === 'AwaitingAdministrator'
+                        ? 'Awaiting administrator'
+                        : organization.state
+                    }}</span>
+                  </td>
+                  <td>{{ organization.administratorEmail }}</td>
+                  <td>{{ organization.createdAtUtc | date: 'mediumDate' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="actions" style="margin-top: 1.2rem">
+          <button
+            class="secondary"
+            type="button"
+            [disabled]="page <= 1 || loading()"
+            (click)="changePage(-1)"
+          >
+            Previous</button
+          ><span class="help">Page {{ data.pageNumber }} · {{ data.totalCount }} total</span
+          ><button
+            class="secondary"
+            type="button"
+            [disabled]="data.pageNumber * data.pageSize >= data.totalCount || loading()"
+            (click)="changePage(1)"
+          >
+            Next
+          </button>
+        </div>
+      } @else {
+        <div class="empty">
+          <h3>No organizations yet</h3>
+          <p>Create your first organization to start provisioning its workspace.</p>
+        </div>
+      }
+    } @else if (loading()) {
+      <p role="status"><span class="spinner" aria-hidden="true"></span> Loading organizations…</p>
+    }
+  </section>
+</div>

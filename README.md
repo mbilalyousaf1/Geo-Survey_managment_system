@@ -4,14 +4,18 @@ Multi-organization GIS field survey management platform, developed incrementally
 
 ## Current scope
 
-Phase 0 foundation deliverables are implemented and ready for user acceptance with the limitations recorded below; Phase 1 has not started. The repository contains a .NET 10 ASP.NET Core API host, a process liveness endpoint, Serilog JSON console logging, an API integration test, shared coding conventions, a GitHub Actions CI workflow for backend and frontend, an Angular 21 skeleton, a MAUI Android skeleton, and local API Docker configuration. Databases, business modules, and authentication are deferred to separately approved tasks.
+Phase 0 is accepted. The approved Phase 1 local Docker delivery is complete: Platform password/MFA authentication, signed sessions and refresh/logout, organization creation, durable provisioning of a separate database per organization, administrator activation, trusted tenant resolution and the Angular workflow. The final fresh Docker/browser scenario passed all eleven checkpoints with nothing skipped. GIS/survey features, general RBAC and mobile integration remain in later phases.
+
+Start with the [Phase 1 submission guide](docs/submission/phase-1/README.md), [local Docker runbook](docs/submission/phase-1/runbook.md), [exact validation results](docs/submission/phase-1/validation-results.md), and [known limitations](docs/submission/phase-1/known-limitations.md). The current backend verification passed 631 tests and a Release build with zero warnings/errors. No production deployment or real administrator credentials are included.
+
+The sections below retain the original foundation setup/history. For the complete Phase 1 workflow, use the Docker runbook above; historical skeleton-only descriptions do not describe the current integrated application.
 
 ## Prerequisites
 
 - .NET SDK `10.0.301` or a later stable patch in the `10.0.3xx` feature band, as selected by `global.json`.
 - Git.
 
-Docker and Node.js are not required to build or run the current API skeleton.
+Docker Desktop with Linux containers and the Node/npm versions in the web package are required for the Phase 1 Docker/browser workflow. The .NET-only build commands below also support foundation development.
 
 ## Build
 
@@ -322,3 +326,13 @@ API startup now requires [persistent certificate-protected Data Protection confi
 The [TOTP primitive](docs/development/totp-primitive.md) now generates canonical authenticator secrets and verifies the approved six-digit codes. Attempt/replay controls and atomic enrollment confirmation remain pending before API integration.
 
 [Persistent MFA attempt/replay controls](docs/development/mfa-attempt-replay-controls.md) now enforce the approved five-failure/15-minute budget and account-level accepted-step history. Full local backend verification: 370 tests passed. Confirmed enrollment and public authentication still require integration.
+
+[Internal atomic MFA enrollment confirmation](docs/development/mfa-enrollment-confirmation.md) verifies real authenticator codes, enables MFA transactionally, and returns ten initial recovery codes once while storing only their hashes. That slice passed 409 backend tests. Public enrollment/login and recovery-code consumption remain pending.
+
+[Internal Platform Administrator password entry](docs/development/platform-password-entry.md) verifies scoped credentials and applies the approved password-lockout policy before issuing a restricted enrollment/verification challenge. That slice passed 453 backend tests; public/session integration remains pending.
+
+[Internal confirmed-factor verification](docs/development/platform-mfa-verification.md) resolves the account from its stored verification token, verifies confirmed TOTP, and applies attempt/replay controls in a caller-owned transaction. That slice passed 487 backend tests. Its provisional subject result requires later atomic session issuance before authentication is complete.
+
+[Session and refresh-token storage](docs/development/session-refresh-token-storage.md) adds account-bound token families and digest-only refresh records, UTC/integrity constraints, retained consumption history, and one unconsumed token per family. That slice passed 541 backend tests. The storage foundation alone does not enable public login.
+
+[Internal Platform Administrator session start](docs/development/platform-session-start.md) now commits actual MFA verification with the initial family/refresh hash and returns the raw refresh ticket only after commit. The accepted Platform limits are a five-minute future access-token maximum, thirty-minute refresh inactivity window, and eight-hour absolute session lifetime. The final full local backend run passed 595 tests, zero failures/skips, after correcting one new test fixture; Release builds and formatting/analyzers passed. JWT signing/validation, refresh/revocation, public authentication/authorization, and client delivery remain separate work.

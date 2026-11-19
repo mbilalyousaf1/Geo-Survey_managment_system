@@ -222,6 +222,8 @@ public sealed class AccountMappingTests(IdentityDatabase database) : IClassFixtu
         Assert.Equal(new[] { "AccountClaims", "AccountLogins", "AccountTokens", "Accounts" },
             model.GetEntityTypes().Select(entity => entity.GetTableName()!).Order(StringComparer.Ordinal).ToArray());
         Assert.All(model.GetEntityTypes(), entity => Assert.Equal("identity", entity.GetSchema()));
+        Assert.Null(model.FindEntityType(typeof(Sessions.TokenFamily)));
+        Assert.Null(model.FindEntityType(typeof(Sessions.RefreshToken)));
         var account = model.FindEntityType(typeof(IdentityAccount))!;
         Assert.Empty(account.GetForeignKeys()); // Explicitly deferred Organization FK, not a complete global model.
         Assert.Equal(ValueGenerated.OnAdd, account.FindProperty(nameof(IdentityAccount.Id))!.ValueGenerated);

@@ -1,2 +1,51 @@
-<main><h1>GeoSurvey</h1></main>
-<router-outlet />
+<a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="header-inner">
+    <a
+      class="brand"
+      [routerLink]="
+        auth.session()?.scope === 'Platform'
+          ? '/platform/organizations'
+          : auth.session()
+            ? '/workspace'
+            : '/sign-in'
+      "
+      aria-label="GeoSurvey home"
+    >
+      <span class="brand-mark" aria-hidden="true"
+        ><svg viewBox="0 0 32 32" fill="none">
+          <path d="m5 12 11-6 11 6-11 6-11-6Z" stroke="currentColor" stroke-width="2" />
+          <path d="m5 18 11 6 11-6M5 23l11 6 11-6" stroke="currentColor" stroke-width="2" /></svg
+      ></span>
+      <span>GeoSurvey<span class="brand-caption">Organization platform</span></span>
+    </a>
+    <nav aria-label="Main navigation">
+      @if (auth.session(); as session) {
+        <a
+          [routerLink]="session.scope === 'Platform' ? '/platform/organizations' : '/workspace'"
+          routerLinkActive="active"
+          >{{ session.scope === 'Platform' ? 'Organizations' : 'Workspace' }}</a
+        >
+        <span class="account-label">{{ session.email }}</span>
+        <button
+          class="secondary"
+          type="button"
+          [disabled]="auth.signingOut()"
+          (click)="auth.logout()"
+        >
+          {{ auth.signingOut() ? 'Signing out…' : 'Sign out' }}
+        </button>
+      } @else {
+        <a routerLink="/sign-in" routerLinkActive="active">Organization sign in</a>
+        <a routerLink="/platform/sign-in" routerLinkActive="active">Platform administration</a>
+      }
+    </nav>
+  </div>
+</header>
+@if (auth.notice()) {
+  <div class="session-notice" role="status">{{ auth.notice() }}</div>
+}
+<main id="main" tabindex="-1"><router-outlet /></main>
+<footer class="site-footer">
+  <span>GeoSurvey</span><span>Phase 1 · Identity &amp; organization onboarding</span>
+</footer>
